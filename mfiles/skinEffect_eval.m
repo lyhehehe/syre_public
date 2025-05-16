@@ -48,7 +48,7 @@ if nargin==0
     dataSet.SlotConductorFrequency = fRef;
     
 else
-    pathname = [dataSet.currentpathname dataSet.currentfilename(1:end-4) '_results\FEA results\' dataSet.currentfilename(1:end-4) '_slotModel\'];
+    pathname = checkPathSyntax([dataSet.currentpathname dataSet.currentfilename(1:end-4) '_results\FEA results\' dataSet.currentfilename(1:end-4) '_slotModel\']);
     filename = ['slotModel.fem'];
     fRef     = dataSet.SlotConductorFrequency;
     tRef     = dataSet.SlotConductorTemperature;
@@ -65,7 +65,7 @@ day   = date(3);
 hour  = date(4);
 mins  = date(5);
 
-resFolder=[pathname 'evaluation' int2str(year) int2str(month) int2str(day) '-' int2str(hour) int2str(mins) ' - ' int2str(per.tempcu) 'deg\'];
+resFolder = checkPathSyntax([pathname 'evaluation' int2str(year) int2str(month) int2str(day) '-' int2str(hour) int2str(mins) ' - ' int2str(per.tempcu) 'deg\']);
 mkdir(resFolder);
 
 copyfile([pathname filename(1:end-4) '.fem'],[resFolder filename(1:end-4) '.fem'])

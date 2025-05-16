@@ -41,7 +41,7 @@ clc
 
 if nargin()==0
     load LastPath.mat
-    [filename,pathname,] = uigetfile([pathname '\.mat'],'Select a machine');
+    [filename,pathname,] = uigetfile(checkPathSyntax([pathname '\.mat']),'Select a machine');
     
     load([pathname filename])
     
@@ -215,12 +215,12 @@ ichOut.filename = filename;
 
 if flagSave
     
-    outFolder = [filename(1:end-4) '_results\FEA results\'];
+    outFolder = checkPathSyntax([filename(1:end-4) '_results\FEA results\']);
     if ~exist([pathname outFolder],'dir')
         mkdir([pathname outFolder]);
     end
     
-    resFolder = [pathname outFolder 'charCurr - ' datestr(now,30) '\'];
+    resFolder = checkPathSyntax([pathname outFolder 'charCurr - ' datestr(now,30) '\']);
     mkdir(resFolder)
     
     save([resFolder 'ichOut.mat'],'ich','ichOut');

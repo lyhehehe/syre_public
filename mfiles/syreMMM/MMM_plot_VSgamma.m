@@ -69,7 +69,7 @@ Ivect = motorModel.WaveformSetup.CurrAmpl;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'plotVSgamma - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'plotVSgamma - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 IPF = sin(atan2(Iq,Id)-atan2(Fq,Fd));
 

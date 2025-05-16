@@ -786,7 +786,7 @@ map.ktempCuMax    = ktempCuMax;
 map.tempCuMax     = tempCuMax; 
 map.ktempCuMaxAct = ktempCuMaxAct; 
 map.tempCuMaxAct  = tempCuMaxAct;
-map.NsI0_hc       = NsI0_hc;
+%map.NsI0_hc       = NsI0_hc;
 
 map.dataSet       = dataSet;
 

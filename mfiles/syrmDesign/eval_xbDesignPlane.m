@@ -61,6 +61,7 @@ dataSet.syrmDesignFlag.therm = 0;   %if 1, thermal transient simulations with Mo
 if strcmp(dataSet.TypeOfRotor,'IM')
     dataSet.TypeOfRotor = 'Seg';
     flagIM = 1;
+    dataSet.FEAfixN = 0;
 else
     flagIM = 0;
 end

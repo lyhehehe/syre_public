@@ -18,9 +18,9 @@ path         = motorModel.data.pathname;
 file         = motorModel.data.motorName;
 targetPMtemp = motorModel.data.targetPMtemp;
 
-[filename1, pathname1] = uigetfile([path '\' file '_results\FEA results' '\*.mat'], 'Pick the low temperature Flux Map');
+[filename1, pathname1] = uigetfile(checkPathSyntax([path '\' file '_results\FEA results' '\*.mat']), 'Pick the low temperature Flux Map');
 fdfq1 = load([pathname1 filename1]);
-[filename2, pathname2] = uigetfile([path '\' file '_results\FEA results' '\*.mat'], 'Pick the high temperature Flux Map');
+[filename2, pathname2] = uigetfile(checkPathSyntax([path '\' file '_results\FEA results' '\*.mat']), 'Pick the high temperature Flux Map');
 fdfq2 = load([pathname2 filename2]);
 
 [fdfq] = interpFluxMapsTemperature(fdfq1,fdfq2,fdfq1.per.tempPP,fdfq2.per.tempPP,targetPMtemp);
@@ -39,7 +39,7 @@ motorModel.IncInductanceMap_dq = [];
 motorModel.FluxMapInv_dq       = [];
 motorModel.FluxMapInv_dqt      = [];
 
-resFolder = [path file '_results\MMM results\tempModels\'];
+resFolder = checkPathSyntax([path file '_results\MMM results\tempModels\']);
 mkdir(resFolder)
 % motorModel = app.motorModel;
 save([resFolder 'motorModel_' int2str(targetPMtemp) 'deg.mat'],'motorModel');

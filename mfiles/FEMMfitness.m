@@ -27,6 +27,8 @@ filename = [filename ext]; % fem file name
 
 [~,pathname]=createTempDir();
 
+flagMTPA = 0;
+
 if ~isempty(RQ)
 
     % MODE optimization (RQ geometry)
@@ -47,14 +49,26 @@ if ~isempty(RQ)
     [geo,mat] = draw_motor_in_FEMM(geo,mat,pathname,filename);
 
     [~,geo] = calc_endTurnLength(geo);
+    [~,geo] = calc_endTurnFieldLength(geo);
  
-%     flag_OptCurrConst = 1;
-    if per.flag_OptCurrConst
-        per.kj   = NaN;
-        per.Loss = NaN;
-        per.J    = NaN;
+    %     flag_OptCurrConst = 1;
+    switch per.flag_OptCurrConst
+        case 0 % constant thermal loading
+            per.loss = NaN;
+            per.J    = NaN;
+        case 1 % constant current density
+            per.kj   = NaN;
+            per.Loss = NaN;
+        case 2 % constant current
+            per.kj   = NaN;
+            per.Loss = NaN;
+            per.J    = NaN;
     end
     per = calc_i0(geo,per,mat);
+    % warning('Define the ratio between stator and rotor current density')
+    per.Jf = per.J*per.JfPU;
+    per = calc_if(geo,per,mat);
+    per.if = per.if0;
 
     %     if any(strcmp(geo.OBJnames,'Fdq0'))
     %         per0 = per;
@@ -148,8 +162,8 @@ if flagSim
         [SOL] = simulate_xdeg(geo,per,mat,eval_type,pathname,filename);
     end
     % standard results
-    out.id     = mean(SOL.id(:));                                      % [A]
-    out.iq     = mean(SOL.iq(:));                                      % [A]
+    out.id     = mean(SOL.id(:));                                   % [A]
+    out.iq     = mean(SOL.iq(:));                                   % [A]
     out.fd     = mean(SOL.fd);                                      % [Vs]
     out.fq     = mean(SOL.fq);                                      % [Vs]
     out.T      = mean(SOL.T);                                       % [Nm]
@@ -160,12 +174,51 @@ if flagSim
     out.We     = mean(SOL.we);                                      % [J]
     out.Wc     = mean(SOL.wc);                                      % [J]
     out.SOL    = SOL;
+
+    if isfield(out.SOL,'if')
+       out.if = mean(SOL.if(:));
+       out.ff = mean(SOL.ff(:));
+    end
+
+    if geo.win.n3phase>1
+        for ff=1:geo.win.n3phase
+            th = out.SOL.th;
+
+            fa = out.SOL.fa(ff,:);
+            fb = out.SOL.fb(ff,:);
+            fc = out.SOL.fc(ff,:);
+            fdq = abc2dq(fa,fb,fc,(th+geo.th0(ff)-geo.th0(1))*pi/180);
+            out.SOL.sets(ff).fa = fa;
+            out.SOL.sets(ff).fb = fb;
+            out.SOL.sets(ff).fc = fc;
+            out.SOL.sets(ff).fd = fdq(1,:);
+            out.SOL.sets(ff).fq = fdq(2,:);
+            out.SOL.sets(ff).f0 = (fa+fb+fc)/3;
+
+            ia = out.SOL.ia(ff,:);
+            ib = out.SOL.ib(ff,:);
+            ic = out.SOL.ic(ff,:);
+            idq = abc2dq(ia,ib,ic,(th+geo.th0(ff)-geo.th0(1))*pi/180);
+            out.SOL.sets(ff).ia = ia;
+            out.SOL.sets(ff).ib = ib;
+            out.SOL.sets(ff).ic = ic;
+            out.SOL.sets(ff).id = idq(1,:);
+            out.SOL.sets(ff).iq = idq(2,:);
+            out.SOL.sets(ff).i0 = (ia+ib+ic)/3;
+
+            out.sets(ff).id = mean(out.SOL.sets(ff).id);
+            out.sets(ff).iq = mean(out.SOL.sets(ff).iq);
+            out.sets(ff).fd = mean(out.SOL.sets(ff).fd);
+            out.sets(ff).fq = mean(out.SOL.sets(ff).fq);
+        end
+    end
     
 
     % check Torque sign
     if sign(out.T)~=sign(out.fd*out.iq-out.fq*out.id)
         out.T = -out.T;
         out.SOL.T = -out.SOL.T;
+        % warning('Torque sign correction')
     end
 
     if isfield(SOL,'F')
@@ -235,7 +288,14 @@ if ~isempty(RQ)     % MODE optimization (RQ geometry)
     temp1 = 1;
     % Torque
     if strcmp(geo.OBJnames{temp1},'Torque')
-        cost(temp1) = -out.T;
+        if ~flagMTPA
+            cost(temp1) = -out.T;
+        else
+            % aggiungere ricerca MTPA
+            perTmp = per;
+            SOL = simulate_xdeg(geo,perTmp,mat,eval_type,pathname,filename);
+            cost(temp1) = -mean(SOLtmp.T);
+        end
         temp1 = temp1+1;
     end
     % Torque Ripple
@@ -290,6 +350,27 @@ if ~isempty(RQ)     % MODE optimization (RQ geometry)
         cost(temp1) = max([outMech.sigmaRadMax outMech.sigmaTanMax])/1e6;
         temp1=temp1+1;
     end
+    
+    % Stator Joule loss
+    if temp1<=length(geo.OBJnames) && strcmp(geo.OBJnames{temp1},'Pjs')
+        if flagSim
+            cost(temp1) = 3/2*per.Rs*abs(out.id+j*out.iq)^2;
+        else
+            cost(temp1) = 10^50;
+        end
+        temp1 = temp1+1;
+    end
+
+    % Field Joule loss
+    if temp1<=length(geo.OBJnames) && strcmp(geo.OBJnames{temp1},'Pjf')
+        if flagSim
+            cost(temp1) = per.Rf*out.if^2;
+        else
+            cost(temp1) = 10^50;
+        end
+        temp1 = temp1+1;
+    end
+
 
     % Structural GalFerContest
     if geo.statorYokeDivision

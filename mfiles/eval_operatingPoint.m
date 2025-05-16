@@ -74,6 +74,7 @@ per.BrPP=BrPP;
 
 per.nsim_singt = NumOfRotPosPP;       % # simulated positions
 per.delta_sim_singt = AngularSpanPP;  % angular span of simulation
+per.if = dataIn.FieldCurrent;         % Field Current EESM
 
 %custom current
 if dataIn.CustomCurrentEnable
@@ -318,7 +319,7 @@ for ii = 1:nSim
         FILENAME = [FILENAME '_' mat2str(per.flag3phaseSet)];
     end
 
-    if length(SimulatedCurrent)==geo.win.n3phase
+    if ((length(SimulatedCurrent)==geo.win.n3phase)&&(geo.win.n3phase~=1))
         FILENAME = [FILENAME '_n3ph_' char(datetime('now','Format','uuuuMMdd''T''HHmmss'))];
     end
 
@@ -338,18 +339,18 @@ for ii = 1:nSim
             FILENAME = [FILENAME '_' nStr '_ironLoss'];
     end
 
-    resFolder = [filemot(1:end-4) '_results\FEA results\'];
+    resFolder = checkPathSyntax([filemot(1:end-4) '_results\FEA results\']);
     if ~exist([pathname resFolder],'dir')
         mkdir([pathname resFolder]);
     end
 
     mkdir([pathname resFolder],FILENAME);
-    newDir=[pathname resFolder FILENAME '\'];
+    newDir = checkPathSyntax([pathname resFolder FILENAME '\']);
 
     if isoctave()            %OCT
         file_name1= strcat(newDir,filemot(1:end-4),'_',FILENAME,'.mat');
         save('-mat7-binary', file_name1,'geo','per','mat','out');
-        dirIn=strcat(dirName, ['\' filemot]);
+        dirIn=checkPathSyntax(strcat(dirName, ['\' filemot]));
         dirDest=strcat(newDir,filemot(1:end-4),'_',FILENAME,'.fem');
         movefile(dirIn, dirDest);
         clear file_name1 dirIn dirDest
@@ -373,8 +374,12 @@ for ii = 1:nSim
             plot_force_gif(geo,out,newDir,filemot);
             forceOut = elab_singt_toothForce(geo,per,out,newDir);
             plot_forceOut_gif(forceOut,newDir)
+            elab_singt_NVH(geo,per,out,forceOut,newDir);
         case 'singtIron'
             plot_singtIron(geo,out,newDir,filemot);
+            if exist('plot_ironLoss_geometry.m','file')
+                plot_ironLoss_geometry(geo,per,mat,out,newDir);
+            end
     end
 
 end
@@ -402,7 +407,7 @@ if nSim>1
         fq(ii) = output{ii}.fq;
     end
     %dirPower = [pathname resFolder filemot(1:end-4) '_singT - ' int2str(dataIn.tempPP) 'deg\'];
-    dirPower = [pathname resFolder 'senseOut - ' int2str(dataIn.tempPP) 'deg - ' datestr(now,30) '\'];
+    dirPower = checkPathSyntax([pathname resFolder 'senseOut - ' int2str(dataIn.tempPP) 'deg - ' datestr(now,30) '\']);
     mkdir(dirPower);
 
     x = 1:length(CurrLoPP);

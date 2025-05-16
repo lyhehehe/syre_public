@@ -25,6 +25,8 @@ switch library
         libName = 'materialLibrary\custom_layer.mat';
 end
 
+libName = checkPathSyntax(libName);
+
 
 prompt={'Relative permeability',...
         'Density [kg*m^-3]'...

@@ -15,7 +15,7 @@
 
 function [AOA] = MMM_MTPAload(pathname)
 
-[filename,pathname] = uigetfile([pathname 'AOA\' '*.mat'],'Select AOA folder');
+[filename,pathname] = uigetfile(checkPathSyntax([pathname 'AOA\' '*.mat']),'Select AOA folder');
 
 if filename
     tmp = load([pathname 'ktMax_idiq.mat']);

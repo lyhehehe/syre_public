@@ -1,7 +1,7 @@
 function [out,wf] = plot_singt_n3phSets(pathname,filename)
 
 if nargin()<2
-    [filename, pathname, ~] = uigetfile([cd '\.mat'], 'LOAD DATA');
+    [filename, pathname, ~] = uigetfile(checkPathSyntax([cd '\.mat']), 'LOAD DATA');
 end
 
 load([pathname filename])

@@ -1,4 +1,4 @@
- % Copyright 2019
+% Copyright 2019
 %
 %    Licensed under the Apache License, Version 2.0 (the "License");
 %    you may not use this file except in compliance with the License.
@@ -297,7 +297,7 @@ end
 
 % NewDir=[pathname,[filemot(1:end-4) '_F_map_' Idstr 'x' Iqstr]];
 
-resFolder = [filemot(1:end-4) '_results\FEA results\'];
+resFolder = checkPathSyntax([filemot(1:end-4) '_results\FEA results\']);
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder]);
 end
@@ -317,7 +317,7 @@ if strcmp(dataIn.EvalType,'singmIron')
     NewDir = [NewDir '_' nStr '_ironLoss'];
 end
 mkdir(NewDir);
-NewDir=[NewDir '\'];
+NewDir = checkPathSyntax([NewDir '\']);
 if isoctave()            %OCT
     file_name1= strcat(NewDir,'F_map','.mat');
     save('-v7', file_name1,'F_map','SOL');

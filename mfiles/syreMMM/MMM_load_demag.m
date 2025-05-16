@@ -15,7 +15,7 @@
 function [demagCurve] = MMM_load_demag(filename)
 
 if nargin~=1
-    [filename,pathname,~] = uigetfile([cd '\*.mat'],'Select Demagnetization Curve');
+    [filename,pathname,~] = uigetfile(checkPathSyntax([cd '\*.mat']),'Select Demagnetization Curve');
     filename = [pathname filename];
 end
 

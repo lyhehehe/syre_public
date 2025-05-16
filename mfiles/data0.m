@@ -44,11 +44,16 @@ per.tempPP = dataIn.tempPP;                   % PMs temperature in postprocessin
 per.temphous = dataIn.HousingTemp;            % Housing Temperature [C]
 per.tempcuest = dataIn.EstimatedCopperTemp;   % Estimated Copper Temperatue [C]
 
-per.kj = dataIn.ThermalLoadKj;
-per.i0 = dataIn.RatedCurrent;
-per.Rs = dataIn.Rs;
+per.kj   = dataIn.ThermalLoadKj;
+per.i0   = dataIn.RatedCurrent;
+per.Rs   = dataIn.Rs;
 per.Lend = dataIn.Lend;
-per.J = dataIn.CurrentDensity;
+per.J    = dataIn.CurrentDensity;
+per.Jf   = dataIn.RotorCurrentDensity;
+per.if   = dataIn.FieldCurrent;               % rotor current for EESM
+per.Rf   = dataIn.Rf;                       % field circuit resistance
+per.if0  = dataIn.RatedFieldCurrent;
+per.JfPU = dataIn.FieldStatorCurrentDensityRatio;
 
 %Custom current
 per.custom_ia         = dataIn.CustomCurrentA;
@@ -65,6 +70,8 @@ per.max_Cu_mass    = dataIn.MaxCuMass;         % maximum expected copper mass [k
 per.max_PM_mass    = dataIn.MaxPMMass;        % massima massa magneti totale [kg]
 per.min_pf         = dataIn.MinExpPowerFactor;
 per.max_fdq0       = dataIn.MaxExpNoLoadFlux;
+per.max_exp_Pjs    = dataIn.MaxExpPjs;
+per.max_exp_Pjf    = dataIn.MaxExpPjf;
 % per.max_mechstress = dataIn.MaxExpMechStress;
 per.EvalSpeed      = dataIn.EvalSpeed;
 
@@ -79,6 +86,7 @@ per.delta_sim_MOOA = dataIn.RotPoMOOA;    % rotor position span [elt degrees]
 % per.delta_sim_singt = dataIn.RotPoFine;   % rotor position span [elt degrees]
 per.nsim_singt = dataIn.NumOfRotPosPP;        % simulated positions (16-1)
 per.delta_sim_singt = dataIn.AngularSpanPP;   % rotor position span [elt degrees]
+
 
 geo.BLKLABELSmaterials = {
     'Air';
@@ -99,6 +107,7 @@ if strcmp(geo.RotType,'SPM') || strcmp(geo.RotType,'Vtype')
 else
     geo.axisType = 'SR';
 end
+
 % geo.axisType = dataIn.axisType;
 
 % 'Circular' is the Circular barrier type of rotor, for any number of barriers
@@ -173,6 +182,22 @@ else
     geo.win.slot_layer_pos = 'over_under';
 end
 geo.win.Lend = dataIn.Lend; % end turn inductance
+
+% EESM
+geo.lyr         = dataIn.YokeWidth;
+geo.hpb         = dataIn.PoleBodyHeight;
+geo.hph         = dataIn.PoleHeadHeight;
+geo.wp          = dataIn.PoleWidth;
+geo.wb          = dataIn.CoilWidth;
+geo.hb          = dataIn.CoilHeight;
+geo.thHead_deg  = dataIn.PoleRotHeadAngle;
+geo.r_fillet    = dataIn.PoleRotHeadFillet;
+
+geo.win.kcuf = dataIn.RotorConductorFillingFactor;
+geo.win.Nf   = dataIn.FieldTurns;   % turns in series per pole
+
+% END EESM
+
 per.flag3phaseSet = dataIn.Active3PhaseSets;
 
 % slot model
@@ -544,6 +569,79 @@ for ii=1:geo.nlay
     rr=rr+1;
 end
 
+RQnames{rr} = 'lyr';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.YokeWidthBou dataIn.YokeWidthBouCheck];
+else
+    bounds(rr,:) = [dataIn.YokeWidth*dataIn.YokeWidthBou dataIn.YokeWidthBouCheck];
+end
+RQ(rr) = geo.lyr;
+rr=rr+1;
+
+RQnames{rr} = 'hpb';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.PoleBodyHeightBou dataIn.PoleBodyHeightBouCheck];
+else
+    bounds(rr,:) = [dataIn.PoleBodyHeight*dataIn.PoleBodyHeightBou dataIn.PoleBodyHeightBouCheck];
+end
+RQ(rr) = geo.hpb;
+rr=rr+1;
+
+% RQnames{rr} = 'hph';
+% if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+%     bounds(rr,:) = [dataIn.PoleHeadHeightBou dataIn.PoleHeadHeightBouCheck];
+% else
+%     bounds(rr,:) = [dataIn.PoleHeadHeight*dataIn.PoleHeadHeightBou dataIn.PoleHeadHeightBouCheck];
+% end
+% RQ(rr) = geo.hph;
+% rr=rr+1;
+
+RQnames{rr} = 'wp';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.PoleWidthBou dataIn.PoleWidthBouCheck];
+else
+    bounds(rr,:) = [dataIn.PoleWidth*dataIn.PoleWidthBou dataIn.PoleWidthBouCheck];
+end
+RQ(rr) = geo.wp;
+rr=rr+1;
+
+RQnames{rr} = 'wb';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.CoilWidthBou dataIn.CoilWidthBouCheck];
+else
+    bounds(rr,:) = [dataIn.CoilWidth*dataIn.CoilWidthBou dataIn.CoilWidthBouCheck];
+end
+RQ(rr) = geo.wb;
+rr=rr+1;
+
+RQnames{rr} = 'hb';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.CoilHeightBou dataIn.CoilHeightBouCheck];
+else
+    bounds(rr,:) = [dataIn.CoilHeight*dataIn.CoilHeightBou dataIn.CoilHeightBouCheck];
+end
+RQ(rr) = geo.wb;
+rr=rr+1;
+
+RQnames{rr} = 'thHead_deg';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.PoleRotHeadAngleBou dataIn.PoleRotHeadAngleBouCheck];
+else
+    bounds(rr,:) = [dataIn.PoleRotHeadAngle*dataIn.PoleRotHeadAngleBou dataIn.PoleRotHeadAngleBouCheck];
+end
+RQ(rr) = geo.wb;
+rr=rr+1;
+
+RQnames{rr} = 'r_fillet';
+if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
+    bounds(rr,:) = [dataIn.PoleRotHeadFilletBou dataIn.PoleRotHeadFilletBouCheck];
+else
+    bounds(rr,:) = [dataIn.PoleRotHeadFillet*dataIn.PoleRotHeadFilletBou dataIn.PoleRotHeadFilletBouCheck];
+end
+RQ(rr) = geo.wb;
+rr=rr+1;
+
+
 RQnames{rr} = 'gamma';
 if (strcmp(dataIn.optType,'MODE Design')||strcmp(dataIn.optType,'Surrogate model dataset (LHS)')||strcmp(dataIn.optType,'Surrogate model dataset (Sobol)'))
     bounds(rr,:) = [dataIn.PhaseAngleCurrBou dataIn.GammaBouCheck];
@@ -572,6 +670,8 @@ objs = [
     per.min_pf              dataIn.PowerFactorOptCheck      0.1
     per.max_fdq0            dataIn.NoLoadFluxOptCheck       0
     mat.Rotor.sigma_max     dataIn.MechStressOptCheck       0
+    per.max_exp_Pjs         dataIn.StatorJouleLossOptCheck  0
+    per.max_exp_Pjf         dataIn.FieldJouleLossOptCheck   0
     ];
 
 per.MechStressOptCheck = dataIn.MechStressOptCheck;
@@ -591,6 +691,8 @@ OBJnames{4} = 'MassPM';
 OBJnames{5} = 'PF';
 OBJnames{6} = 'Fdq0';
 OBJnames{7} = 'MechStress';
+OBJnames{8} = 'Pjs';
+OBJnames{9} = 'Pjf';
 
 % eliminate unnecessary OBJnames
 OBJnames = OBJnames(filt_objs);

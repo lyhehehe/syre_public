@@ -10,7 +10,7 @@ clc
 
 %% Load partial save of the optimization
 if flag
-    pathname=[cd '\partial_optimization\'];
+    pathname = checkPathSyntax([cd '\partial_optimization\']);
     tmp=dir(pathname);
     FILENAME=tmp(end).name;
 else
@@ -139,7 +139,7 @@ for n=startGen:generations
     
     [OUT, options]=PrinterDisplay(OUT,options); % To print results on screen
     
-    save(['partial_optimization\generation_' int2str(n)]);
+    save(checkPathSyntax(['partial_optimization\generation_' int2str(n)]));
     
     if functionEvaluations>options.MAXFUNEVALS || n>options.MAXGEN
         disp('Termination criteria reached.')

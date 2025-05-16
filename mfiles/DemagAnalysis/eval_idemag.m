@@ -18,7 +18,8 @@ clc
 
 if nargin==0
     load LastPath.mat
-    [filename,pathname,~]=uigetfile([pathname '\.mat'],'Select a machine');
+    % [filename,pathname,~]=uigetfile([pathname '\.mat'],'Select a machine');
+    [filename,pathname,~]=uigetfile({'.mat'},'Select a PM machine',cd);
     
     load([pathname filename])
     
@@ -77,11 +78,13 @@ per.delta_sim_singt = dataSet.AngularSpanPP;
 per.tempPP          = tempVect;
 
 outFolder = [filename(1:end-4) '_results\FEA results\'];
+outFolder = checkPathSyntax(outFolder);
 if ~exist([pathname outFolder],'dir')
     mkdir([pathname outFolder]);
 end
 
 resFolder = ['demagCurve - ' datestr(now,30) '\'];
+resFolder = checkPathSyntax(resFolder);
 mkdir([pathname outFolder],resFolder);
 resFolder = [pathname outFolder resFolder];
 

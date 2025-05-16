@@ -52,15 +52,27 @@ lend = motorModel.data.lend;
 Ns0  = motorModel.data.Ns;
 p    = motorModel.data.p;
 R    = motorModel.data.R;
+n3ph = motorModel.data.n3phase;
+
+if ~isempty(motorModel.DemagnetizationLimit)
+    tempPMmax = max(motorModel.DemagnetizationLimit.tempPM);
+    tempPMmax = 150;
+end
+
 
 if strcmp(motorModel.data.motorType,'PM')
     if ~isempty(motorModel.DemagnetizationLimit)
         Idemag0 = interp1(motorModel.DemagnetizationLimit.tempPM,motorModel.DemagnetizationLimit.Idemag,motorModel.data.tempPM);
+        IdemagTempMax0 = interp1(motorModel.DemagnetizationLimit.tempPM,motorModel.DemagnetizationLimit.Idemag,tempPMmax);
+        Idemag20deg0 = interp1(motorModel.DemagnetizationLimit.tempPM,motorModel.DemagnetizationLimit.Idemag,20);
     else
         Idemag0 = NaN;
+        IdemagTempMax0 = NaN;
+        Idemag20deg0 = NaN;
     end
 else
     Idemag0 = NaN;
+    IdemagTempMax0 = NaN;
 end
 
 % evaluation of the HWC current
@@ -115,10 +127,12 @@ for ii=1:length(index)
     ich(ii)  = interp1(fTmp*kN(ii)*kL(ii),iTmp/kN(ii),0,'linear','extrap');
 end
 
-loss = 3/2*Rs.*abs(id+j*iq).^2;
+loss = 3/2*Rs.*abs(id+j*iq).^2*n3ph;
 kj = loss./(2*pi*R/1000*l/1000);
 
 Idemag = Idemag0./kN;
+IdemagTempMax = IdemagTempMax0./kN;
+Idemag20deg = Idemag20deg0./kN;
 fM     = interp2(fdfq.Id,fdfq.Iq,abs(fdfq.Fd+j*fdfq.Fq),0,0).*kN.*kL;
 nUGO   = n.*abs(fd+j*fq)./fM;
 
@@ -143,6 +157,8 @@ else
     mapScale.J = NaN;
 end
 mapScale.Idemag     = Idemag;
+mapScale.IdemagTempMax = IdemagTempMax;
+mapScale.Idemag20deg   = Idemag20deg;
 mapScale.iHWC       = iHWC;
 mapScale.ich        = ich;
 mapScale.fM         = fM;
@@ -156,19 +172,19 @@ mapScale.motorModel = motorModel;
 motName  = motorModel.data.motorName;
 pathname = motorModel.data.pathname;
 
-resFolder = [motName '_results\MMM results\MapScalingLN_' datestr(now,30) '\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\MapScalingLN_' datestr(now,30) '\']);
 
 hfig(1) = figure();
 figSetting()
-xlabel('$L$ [mm]')
+xlabel('$L$ (mm)')
 ylabel('$N_s$')
 colors = get(gca,'ColorOrder');
-contour(mapScale.l,mapScale.Ns,mapScale.T,'-','LineColor',colors(2,:),'LineWidth',1.5,'ShowText','on','DisplayName','$T$ [Nm]')
+contour(mapScale.l,mapScale.Ns,mapScale.T,'-','LineColor',colors(2,:),'LineWidth',1.5,'ShowText','on','DisplayName','$T$ (Nm)')
 contour(mapScale.l,mapScale.Ns,mapScale.PF,'-','LineColor',colors(1,:),'LineWidth',1.5,'ShowText','on','DisplayName','$cos\varphi$')
 if ~isnan(mapScale.J(1,1))
-    contour(mapScale.l,mapScale.Ns,mapScale.J,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$J$ [Arms/mm$^2$]')
+    contour(mapScale.l,mapScale.Ns,mapScale.J,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$J$ (Arms/mm$^2$)')
 else
-    contour(mapScale.l,mapScale.Ns,mapScale.kj/1000,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$k_j$ [kW/m$^2$]')
+    contour(mapScale.l,mapScale.Ns,mapScale.kj/1000,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$k_j$ (kW/m$^2$)')
 end
 plot(l0,Ns0,'ko','MarkerFaceColor','k','DisplayName','Baseline')
 legend('show','Location','northeast');
@@ -177,12 +193,12 @@ set(hfig(1),'FileName',[pathname resFolder 'mapScaling.fig'],'UserData',mapScale
 
 hfig(2) = figure();
 figSetting()
-xlabel('$L$ [mm]')
+xlabel('$L$ (mm)')
 ylabel('$N_s$')
 colors = get(gca,'ColorOrder');
-contour(mapScale.l,mapScale.Ns,mapScale.T,'-','LineColor',colors(2,:),'LineWidth',1.5,'ShowText','on','DisplayName','$T$ [Nm]')
-contour(mapScale.l,mapScale.Ns,mapScale.n,'-','LineColor',colors(1,:),'LineWidth',1.5,'ShowText','on','DisplayName','$n$ [rpm]')
-contour(mapScale.l,mapScale.Ns,mapScale.kj/1000,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$k_j$ [kW/m$^2$]')
+contour(mapScale.l,mapScale.Ns,mapScale.T,'-','LineColor',colors(2,:),'LineWidth',1.5,'ShowText','on','DisplayName','$T$ (Nm)')
+contour(mapScale.l,mapScale.Ns,mapScale.n,'-','LineColor',colors(1,:),'LineWidth',1.5,'ShowText','on','DisplayName','$n$ (rpm)')
+contour(mapScale.l,mapScale.Ns,mapScale.kj/1000,'-','LineColor',colors(3,:),'LineWidth',1.5,'ShowText','on','DisplayName','$k_j$ (kW/m$^2$)')
 plot(l0,Ns0,'ko','MarkerFaceColor','k','DisplayName','Baseline')
 legend('show','Location','northeast');
 title(['($L,N_s)$ map - $V_{dc}=' int2str(Vdc) '$ V / $I_{max}=' int2str(Imax) '$ Apk'])

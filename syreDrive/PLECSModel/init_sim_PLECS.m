@@ -1,12 +1,10 @@
 
-clear
 warning off;
-
 load motorModel
 
 
 % S-fun Parameters
-Tstep = 2e-6;
+Tstep = 1e-4;
 Ts    = 100e-6;
 
 
@@ -24,23 +22,35 @@ Tv      = 0;%P0/(nmax*pi/30)^3;   % ventilation loss coefficient (W/(rad/s)^3 = 
 MTPA    = motorModel.controlTrajectories.MTPA;
 i0      = motorModel.data.i0;
 
-id_MTPA = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.id,i0);
-iq_MTPA = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.iq,i0);
+switch motorModel.SyreDrive.modelSetup.Ctrl_type
+    case 'Current control'
+        idRef = motorModel.WaveformSetup.CurrAmpl*cosd(motorModel.WaveformSetup.CurrAngle);
+        iqRef = motorModel.WaveformSetup.CurrAmpl*sind(motorModel.WaveformSetup.CurrAngle);
+        nRef  = motorModel.WaveformSetup.EvalSpeed;
+    otherwise
+        idRef = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.id,i0);
+        iqRef = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.iq,i0);
+        nRef  = motorModel.data.n0;
+end
+Ld_inic = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Ldd,idRef,iqRef);
+Lq_inic = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Lqq,idRef,iqRef);
 
-Ld_inic = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Ldd,id_MTPA,iq_MTPA);
-Lq_inic = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Lqq,id_MTPA,iq_MTPA);
 T0(~isnan(motorModel.data.T0)) = motorModel.data.T0;
 T0(isempty(T0)) = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.T,i0);
-n0(~isnan(motorModel.data.n0)) = motorModel.data.n0;
-n0(isempty(n0)) = 1000;
+% n0(~isnan(motorModel.data.n0)) = motorModel.data.n0;
+% n0(isempty(n0)) = 1000;
+if nRef==0
+    nRef = 1000;
+end
+
 clear MTPA
 
 % Converter
 V0 = motorModel.SyreDrive.Converter.V0;             % power semiconductors ON treshold [V]
 Rd = motorModel.SyreDrive.Converter.Rd;             % power semiconductors incremental resistance [Ohm]
 dT = motorModel.SyreDrive.Converter.dT * 1e-6;      % dead time [s]
-
-switch motorModel.SyreDrive.modelType
+dT = dT*0; % dead-time disabled
+switch motorModel.SyreDrive.modelSetup.modelType
     case 'Istantaneous'
         InverterModel = 1;
     case 'Average'
@@ -94,9 +104,13 @@ switch(Quad_Maps)
 end
 
 
+
+
+
+
 %% ---------------- Inverse Flux Maps ------------------------%
- 
-switch motorModel.SyreDrive.FMapsModel
+
+switch motorModel.SyreDrive.modelSetup.FMapsModel
     case 'dq Model'
         FMapsModel = 1;
     case 'dqt Model'
@@ -139,7 +153,7 @@ T_dqt=interpn(motorModel.FluxMapInv_dqt.dataF.Fd,motorModel.FluxMapInv_dqt.dataF
 
 %% -----------------Iron Loss Model-------------------------------%%
 
-switch motorModel.SyreDrive.IronLoss
+switch motorModel.SyreDrive.modelSetup.IronLoss
     case 'No'
         IronLoss = 0;        
     case 'Yes'
@@ -166,7 +180,7 @@ save('SimMatFiles\IronLosses','id_fe','iq_fe','Pfe_c','Ppm','Pfe_h','expH','expC
 %% --------------------User Settings-------------------------%
 
 % Ctrl settings
-switch motorModel.SyreDrive.Ctrl_type
+switch motorModel.SyreDrive.modelSetup.Ctrl_type
     case 'Current control'
         Ctrl_type = 0;
     case 'Torque control'
@@ -176,7 +190,7 @@ switch motorModel.SyreDrive.Ctrl_type
 end
 
 % Ctrl Strategy 
-switch motorModel.SyreDrive.Ctrl_strategy
+switch motorModel.SyreDrive.modelSetup.Ctrl_strategy
     case 'FOC'
         Ctrl_strategy = 0;
     case 'DFVC'
@@ -223,11 +237,31 @@ Clarke = 2/3*[1 -0.5 -0.5;0 sqrt(3)/2 -sqrt(3)/2];
 %2-ph to 3-ph
 Clarke_inv = [1 0;-0.5 sqrt(3)/2;-0.5 -sqrt(3)/2];
 
+%% Configure Inverse Flux Maps subsystem
 
+if(Quad_Maps==0 && FMapsModel==1)
+    config_fluxMaps = 1; % dq Maps - SyR
+end
+if(Quad_Maps==1 && FMapsModel==1)
+    config_fluxMaps = 2; % dq Maps - PM-SyR
+end
+if(Quad_Maps==2 && FMapsModel==1)
+    config_fluxMaps = 3; % dq Maps - PM
+end
+
+if(Quad_Maps==0 && FMapsModel==-1)
+    config_fluxMaps = 4; % dqt Maps - SyR
+end
+if(Quad_Maps==1 && FMapsModel==-1)
+    config_fluxMaps = 5; % dqt Maps - PM-SyR
+end
+if(Quad_Maps==2 && FMapsModel==-1)
+    config_fluxMaps = 6; % dqt Maps - PM
+end
 
 %% Save MatFiles
 
-save('SimMatFiles\Parameters','Tstep','Ts','VDC','Rs','p','J','Rfe','accel','Bm','Tf','Tv','Rd','dT','T0','n0','Fm','th0','Clarke','Clarke_inv');
+save('SimMatFiles\Parameters','Tstep','Ts','VDC','Rs','p','J','Rfe','accel','Bm','Tf','Tv','Rd','dT','T0','nRef','Fm','th0','Clarke','Clarke_inv');
 switch(Quad_Maps)
     case {0,2}
         save('SimMatFiles\InvFluxMapdq','fD_pu_norm','fQ_pu_norm','iD_pu_norm','iQ_pu_norm','fQ_pu_norm','fD_vct_ref','fQ_vct_max');
@@ -235,7 +269,7 @@ switch(Quad_Maps)
         save('SimMatFiles\InvFluxMapdq','fD_pu_norm','fQ_pu_norm','iD_pu_norm','iQ_pu_norm','fQ_pu_norm','fQ_vct_ref','fD_vct_max');
 end
 save('SimMatFiles\InvFluxMapdqt','Fd_max','Fq_max','Fd_min','Fq_min','th_min','th_max','th_dqt','Fd_v','Fq_v','th_v','Id_dqt','Iq_dqt','T_dqt');
-save('SimMatFiles\UserSettings','Ctrl_type','Ctrl_strategy','SS_on','inj_waveform','dem','HS_ctrl','FMapsModel','InverterModel','Quad_Maps','id_MTPA','iq_MTPA','Ld_inic','Lq_inic','InitIntg_d','InitIntg_q','IronLoss');
+save('SimMatFiles\UserSettings','Ctrl_type','Ctrl_strategy','SS_on','inj_waveform','dem','HS_ctrl','FMapsModel','InverterModel','Quad_Maps','idRef','iqRef','Ld_inic','Lq_inic','InitIntg_d','InitIntg_q','IronLoss','config_fluxMaps');
 
 
  

@@ -19,7 +19,7 @@ dqtMap    = motorModel.FluxMap_dqt;
 hVect     = motorModel.dqtElab.harmonic;
 pathname  = motorModel.data.pathname;
 motName   = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Torque Ripple FFT analysis - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Torque Ripple FFT analysis - ' int2str(motorModel.data.tempPM) 'deg\']);
 Id        = dqtMap.data.Id;
 Iq        = dqtMap.data.Iq;
 

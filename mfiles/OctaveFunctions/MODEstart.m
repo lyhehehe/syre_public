@@ -29,7 +29,7 @@ function MODEstart(filename,pathname)
 
 if nargin()<2
     manual_dataSet;
-    dataSet.currentpathname = [cd '\'];
+    dataSet.currentpathname = checkPathSyntax([cd '\']);
     dataSet.currentfilename = 'mot_0.fem';
     [bounds, objs, geo, per, mat]=data0(dataSet);
     dataSet.RQ = buildDefaultRQ(bounds);
@@ -38,7 +38,7 @@ else
         filename = [filename '.mat'];
     end
     if ~isequal(pathname(end),'\')
-        pathname=[pathname '\'];
+        pathname=checkPathSyntax([pathname '\']);
     end
     load([pathname filename]);
     dataSet = back_compatibility(dataSet,geo,per,1);

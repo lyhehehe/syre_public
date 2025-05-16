@@ -29,7 +29,7 @@ matListBase = MatList;
 if ind~=0
     mat=MatLib{ind};
 else
-    load('materialLibrary\custom_layer.mat')
+    load(checkPathSyntax('materialLibrary\custom_layer.mat'))
     ind=0;
     for ii=1:length(MatList)
         if strcmp(MatList{ii},MatName)

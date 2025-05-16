@@ -30,7 +30,11 @@ thRot = out.SOL.th-out.SOL.th(1);
 xdeg = per.delta_sim_singt;
 
 alphaSlot = 360/nSlot;
-alphaTooth = alphaSlot*(1-geo.acs);
+if geo.acs~=1
+    alphaTooth = alphaSlot*(1-geo.acs);
+else
+    alphaTooth = alphaSlot*0.5;
+end
 
 thTooth = ((0:1:nSlot-1)*alphaSlot)';
 

@@ -25,6 +25,8 @@ switch library
         libName = 'materialLibrary\custom_conductor.mat';
 end
 
+libName = checkPathSyntax(libName);
+
 
 prompt={'Conductivity [S/m]',...
         'Density [kg*m^-3]',...

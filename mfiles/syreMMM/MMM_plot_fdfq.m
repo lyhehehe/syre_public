@@ -26,7 +26,7 @@ dTpp = motorModel.FluxMap_dq.dTpp;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'dq Flux Maps - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'dq Flux Maps - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 %% Surfaces
 figNames{1}  = 'FluxD_3D';

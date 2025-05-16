@@ -21,13 +21,15 @@ end
 % add the required directories to the path
 syreDirectory = fileparts(which('GUI_Syre.mlapp'));
 
-% clc
+% Handle platform-specific FEMM path (optional: skip or prompt user if not Windows)
+if ispc
+    addpath('C:\femm42\mfiles');
+else
+    warning('backtrace','off');
+    warning('SyR-e is running on non-Windows system. FEMM not available!')
+    warning('backtrace','on');
+end
 
-%if isoctave
-%    thisfilepath = fileparts(canonicalize_file_name(thisfilepath));
-%    endfileName = '\';
-%end
-addpath('C:\femm42\mfiles');
 addpath(fullfile(syreDirectory));
 addpath(fullfile(syreDirectory,'mfiles'));
 addpath(genpath(fullfile(syreDirectory,'mfiles','MODE')));
@@ -38,64 +40,52 @@ addpath(genpath(fullfile(syreDirectory,'mfiles','StructuralPDE')));
 addpath(genpath(fullfile(syreDirectory,'mfiles','syreMMM')));
 addpath(genpath(fullfile(syreDirectory,'mfiles','OctaveFunctions')));
 
-addpath (fullfile(syreDirectory,'materialLibrary'));
-addpath (fullfile(syreDirectory,'motorExamples'));
+addpath(fullfile(syreDirectory,'materialLibrary'));
+addpath(fullfile(syreDirectory,'motorExamples'));
 
 addpath(genpath(fullfile(syreDirectory,'syreExport')));
-% addpath(genpath(fullfile(syreDirectory,'syreExport\syre_Dxf')));
-% addpath(genpath(fullfile(syreDirectory,'syreExport\syre_MagNet')));
-% addpath(genpath(fullfile(syreDirectory,'syreExport\syre_MotorCAD')));
-% addpath(genpath(fullfile(syreDirectory,'syreExport\syre_AnsysMaxwell')));
 
 % check additional features (custom functions)
-addpath(fullfile(syreDirectory,'syreCustomFeatures'));
-addon = dir([syreDirectory '\syreCustomFeatures\']);
+customFeaturesDir = fullfile(syreDirectory,'syreCustomFeatures');
+addpath(customFeaturesDir);
+addon = dir(customFeaturesDir);
 if length(addon)>2
     if flagInfo
         disp('Custom features added:')
     end
     for ii=3:length(addon)
-        addpath(genpath([syreDirectory '\syreCustomFeatures\' addon(ii).name]));
-        if flagInfo
-            disp(['- ' addon(ii).name]);
+        if addon(ii).isdir
+            addpath(genpath(fullfile(customFeaturesDir, addon(ii).name)));
+            if flagInfo
+                disp(['- ' addon(ii).name]);
+            end
         end
     end
 end
 
-% savepath
-
 % check for missing folders
-if ~exist([cd '\results'],'dir')
-    mkdir('results')
+resultsDir = fullfile(cd, 'results');
+if ~exist(resultsDir,'dir')
+    mkdir(resultsDir)
 end
-if ~exist([cd '\tmp'],'dir')
-    mkdir('tmp')
+tmpDir = fullfile(cd, 'tmp');
+if ~exist(tmpDir,'dir')
+    mkdir(tmpDir)
 end
 
-if ~exist([cd '\syreDrive\PLECSModel\SimMatFiles'],'dir')
-    mkdir('syreDrive\PLECSModel\SimMatFiles')
+simMatFilesDir = fullfile(cd, 'syreDrive', 'PLECSModel', 'SimMatFiles');
+if ~exist(simMatFilesDir,'dir')
+    mkdir(simMatFilesDir)
 end
+
 % Check for custom library files
-if ~exist([syreDirectory '\materialLibrary\custom_iron.mat'],'file')
-    MatLib = {};
-    MatList = {};
-    save([syreDirectory '\materialLibrary\custom_iron.mat'],'MatLib','MatList');
+matLibDir = fullfile(syreDirectory, 'materialLibrary');
+customFiles = {'custom_iron.mat', 'custom_layer.mat', 'custom_conductor.mat', 'custom_sleeve.mat'};
+for ii = 1:length(customFiles)
+    customFilePath = fullfile(matLibDir, customFiles{ii});
+    if ~exist(customFilePath, 'file')
+        MatLib = {};
+        MatList = {};
+        save(customFilePath, 'MatLib', 'MatList');
+    end
 end
-if ~exist([syreDirectory '\materialLibrary\custom_layer.mat'],'file')
-    MatLib = {};
-    MatList = {};
-    save([syreDirectory '\materialLibrary\custom_layer.mat'],'MatLib','MatList');
-end
-if ~exist([syreDirectory '\materialLibrary\custom_conductor.mat'],'file')
-    MatLib = {};
-    MatList = {};
-    save([syreDirectory '\materialLibrary\custom_conductor.mat'],'MatLib','MatList');
-end
-if ~exist([syreDirectory '\materialLibrary\custom_sleeve.mat'],'file')
-    MatLib = {};
-    MatList = {};
-    save([syreDirectory '\materialLibrary\custom_sleeve.mat'],'MatLib','MatList');
-end
-
-
-

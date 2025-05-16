@@ -81,6 +81,14 @@ per.Lend = calc_Lend(geo);
 dataSet.EndWindingsLength = geo.lend;
 dataSet.Lend = per.Lend;
 
+[~,geo] = calc_endTurnFieldLength(geo);
+per = calc_if(geo,per,mat);
+dataSet.RotorCurrentDensity = per.Jf;
+dataSet.RatedFieldCurrent = per.if0;
+dataSet.Rf = per.Rf;
+dataSet.RotorCurrentDensity = per.Jf;
+
+
 
 % Mass and Inertia computation
 geo.pShape = dataSet.pShape;
@@ -88,7 +96,12 @@ geo.mCu = calcMassCu(geo,mat);
 geo.mPM = calcMassPM(geo,mat);
 geo.mAl = calcMassAl(geo,mat);
 [geo.mFeS,geo.mFeR] = calcMassFe(geo,mat);
-geo.J = calcRotorInertia(geo,mat);
+if strcmp(geo.RotType,'EESM')
+    geo.J = NaN;
+    warning('Rotor inertia not yet computed')
+else
+    geo.J = calcRotorInertia(geo,mat);
+end
 
 dataSet.MassWinding = geo.mCu;
 dataSet.MassMagnet = geo.mPM;
@@ -127,7 +140,7 @@ dataSet.CentralShrink = geo.hcShrink;
 % set(app.CalculatedRatedCurrent,'String',num2str(dataSet.RatedCurrent));
 % set(app.CurrentPP,'String',num2str(dataSet.RatedCurrent));
 % set(app.Rsedit,'String',num2str(dataSet.Rs));
-if (~strcmp(geo.RotType, 'SPM') && ~strcmp(geo.RotType,'IM'))
+if (~strcmp(geo.RotType, 'SPM') && ~strcmp(geo.RotType,'IM') && ~strcmp(geo.RotType,'EESM'))
     dataSet.ALPHAdeg = round(100*geo.dalpha)/100;
     dataSet.HCmm = round(100*geo.hc)/100;
 %     set(app.AlphadegreeEdit,'String',mat2str(dataSet.ALPHAdeg));
@@ -137,6 +150,17 @@ elseif strcmp(geo.RotType,'SPM')
     dataSet.HCmm     = round(100*geo.hc)/100;
 elseif strcmp(geo.RotType, 'Spoke-type')
     dataSet.TanRibEdit = geo.pontT;
+elseif(strcmp(geo.RotType, 'EESM'))
+    dataSet.ALPHAdeg = round(100*geo.dalpha)/100;
+    dataSet.YokeWidth         = geo.lyr;
+    dataSet.PoleBodyHeight    = geo.hpb;
+    dataSet.PoleHeadHeight    = geo.hph;
+    dataSet.PoleAnglepu       = geo.dalpha_pu;
+    dataSet.PoleWidth         = geo.wp;
+    dataSet.CoilWidth         = geo.wb;
+    dataSet.CoilHeight        = geo.hb;
+    dataSet.PoleRotHeadAngle  = geo.thHead_deg;
+    dataSet.PoleRotHeadFillet = geo.r_fillet; 
 end
 
 dataSet.RadRibEdit = round(geo.pontR*100)/100;

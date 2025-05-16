@@ -1,10 +1,10 @@
 function [motorModel] = MMM_autoLoad(pathname,filename)
 
 if nargin()~=2
-    [filename,pathname] = uigetfile([cd '\'],'Select motor model');
+    [filename,pathname] = uigetfile(checkPathSyntax([cd '\']),'Select motor model');
 end
 
-FEAfolder = [pathname filename(1:end-4) '_results\FEA results\'];
+FEAfolder = checkPathSyntax([pathname filename(1:end-4) '_results\FEA results\']);
 
 clc
 disp('Automatic loading of FEA results in MMM')
@@ -19,7 +19,7 @@ if ~exist(FEAfolder,'dir')
     disp('FEA folder not present!')
 else
     disp('FEA folder found')
-    MMMfolder = [pathname filename(1:end-4) '_results\MMM results\'];
+    MMMfolder = checkPathSyntax([pathname filename(1:end-4) '_results\MMM results\']);
     if ~exist(MMMfolder,'dir')
         mkdir(MMMfolder)
         disp('MMM folder created')
@@ -49,18 +49,18 @@ else
             
             disp(['- Flux Maps at ' int2str(tmp) 'deg found'])
             indexMap = indexMap+1;
-            data = load([FEAfolder dirName '\fdfq_idiq_n256.mat']);
+            data = load(checkPathSyntax([FEAfolder dirName '\fdfq_idiq_n256.mat']));
             [fdfq{indexMap},tempPM(indexMap)] = MMM_load_fdfq(data,motorModel.data.p);
-            dataSet{indexMap} = load([FEAfolder dirName '\fdfq_idiq_n256.mat'],'dataSet');
+            dataSet{indexMap} = load(checkPathSyntax([FEAfolder dirName '\fdfq_idiq_n256.mat']),'dataSet');
             indexDir(indexMap) = ii;
             if dataSet{indexMap}.dataSet.NumOfRotPosPP>20
-                dqtMap{indexMap} = MMM_eval_dqtMap([FEAfolder dirName '\'],'F_map.mat');
+                dqtMap{indexMap} = MMM_eval_dqtMap(checkPathSyntax([FEAfolder dirName '\']),'F_map.mat');
                 disp('   dqtMap included')
             else
                 dqtMap{indexMap} = [];
             end
             if strfind(dirName,'ironLoss')
-                ironLoss{indexMap} = loadIronLossModel([FEAfolder dirName '\fdfq_idiq_n256.mat']);
+                ironLoss{indexMap} = loadIronLossModel(checkPathSyntax([FEAfolder dirName '\fdfq_idiq_n256.mat']));
                 disp('   Iron loss included')
             else
                 ironLoss{indexMap} = [];
@@ -71,7 +71,7 @@ else
             for jj=1:length(dirSlot)
                 if strfind(dirSlot(jj).name,'evaluation')
                     if dirSlot(jj).datenum>modTime
-                        skinEffect = loadSkinEffectModel([FEAfolder dirName '\' dirSlot(jj).name '\skinEffectResults.mat']);
+                        skinEffect = loadSkinEffectModel(checkPathSyntax([FEAfolder dirName '\' dirSlot(jj).name '\skinEffectResults.mat']));
                         modTime = dirSlot(jj).datenum;
                         disp('- Skin effect model found')
                     end

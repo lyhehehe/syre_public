@@ -22,7 +22,7 @@ function [dqtMap] = MMM_eval_dqtMap(pathname,filename)
 % end
 
 if nargin()==0
-    pathname = [cd '\'];
+    pathname = checkPathSyntax([cd '\']);
     [filename,pathname] = uigetfile([pathname '*.mat'],'Load F_map file for dqtMap evaluation');
 elseif nargin()==1
     [filename,pathname] = uigetfile([pathname '*.mat'],'Load F_map file for dqtMap evaluation');

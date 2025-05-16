@@ -7,7 +7,7 @@ line.inputs = 36;
 line.outputs = 37;
 line.ia = 94;
 
-Motor_ctrl_0_path = [ctrlFolder_path '\Motor_ctrl_0.c'];
+Motor_ctrl_0_path = checkPathSyntax([ctrlFolder_path '\Motor_ctrl_0.c']);
 
 fid = fopen(Motor_ctrl_0_path,'r');
 i = 1;
@@ -554,7 +554,7 @@ Motor_ctrl = [Motor_ctrl; sprintf(blanks(1)+"}")];
 
 %% -------------------------Stampa del nuovo file------------------------%%
 
-Motor_ctrl_path = [ctrlFolder_path '\Motor_ctrl.c'];
+Motor_ctrl_path = checkPathSyntax([ctrlFolder_path '\Motor_ctrl.c']);
 
 fid = fopen(Motor_ctrl_path, 'w');
 for i = 1:numel(Motor_ctrl)

@@ -13,10 +13,13 @@
 %    limitations under the License.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [TSCout,resFolderOut] = MMM_eval_shortCircuit_transient(motorModel,saveFlag)
+function [TSCout,resFolderOut] = MMM_eval_shortCircuit_transient(motorModel,saveFlag,dispFlag)
 
 if nargin()==1
     saveFlag = [];
+    dispFlag = 1;
+elseif nargin()==2
+    dispFlag = 1;
 end
 
 % load data
@@ -230,7 +233,7 @@ gammaStr=strrep(gammaStr,'.','d');
 if ~contains(gammaStr,'d')
     gammaStr=[gammaStr 'd'];
 end
-resFolder = [motName '_results\MMM results\' 'TransientSC - ' iStr '_' gammaStr '_' int2str(n) 'rpm' '_' int2str(motorModel.data.tempPM) 'degPM_' int2str(motorModel.data.tempCu) 'degCu\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'TransientSC - ' iStr '_' gammaStr '_' int2str(n) 'rpm' '_' int2str(motorModel.data.tempPM) 'degPM_' int2str(motorModel.data.tempCu) 'degCu\']);
 
 resFolderOut = [pathname resFolder];
 
@@ -390,8 +393,10 @@ fInt.IdFe = scatteredInterpolant(data.Fd,data.Fq,real(IdqFe(:)),'linear','linear
 fInt.IqFe = scatteredInterpolant(data.Fd,data.Fq,imag(IdqFe(:)),'linear','linear');
 dt = time(2);
 
-disp('Transient short-circuit computation...')
-fprintf(' %06.2f%%',0)
+if dispFlag
+    disp('Transient short-circuit computation...')
+    fprintf(' %06.2f%%',0)
+end
 
 for tt=2:length(time)
     dFd = (+w*fqVect(tt-1)-n3phase*Rs*idVect(tt-1))*dt;
@@ -436,9 +441,11 @@ for tt=2:length(time)
     pFeVect(tt)    = interp2(fdfq.Id,fdfq.Iq,Pfe,idmVect(tt),iqmVect(tt));
     % weVect(tt)     = interp2(fdfq.Id,fdfq.Iq,fdfq.We,idmVect(tt),iqmVect(tt));
     % wcVect(tt)     = interp2(fdfq.Id,fdfq.Iq,fdfq.Wc,idmVect(tt),iqmVect(tt));
-
-    fprintf('\b\b\b\b\b\b\b\b')
-    fprintf(' %06.2f%%',tt/length(time)*100)
+    
+    if dispFlag
+        fprintf('\b\b\b\b\b\b\b\b')
+        fprintf(' %06.2f%%',tt/length(time)*100)
+    end
 
     if flagPlot
         set(hp1(1),'YData',idVect);
@@ -476,8 +483,10 @@ for tt=2:length(time)
     end
 end
 
-disp(' ')
-disp('Transient short-circuit computed!')
+if dispFlag
+    disp(' ')
+    disp('Transient short-circuit computed!')
+end
 
 if ~flagPlot
     set(hp1(1),'YData',idVect);

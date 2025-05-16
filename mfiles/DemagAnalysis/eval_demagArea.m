@@ -63,11 +63,13 @@ pathname = dataIn.currentpathname;
 filename = dataIn.currentfilename;
 
 outFolder = [filename(1:end-4) '_results\FEA results\'];
+outFolder = checkPathSyntax(outFolder);
 if ~exist([pathname outFolder],'dir')
     mkdir([pathname outFolder]);
 end
 
 resFolder = ['demagArea_' int2str(per.tempPP) 'degC_' int2str(per.i0*per.overload) 'Amp_' int2str(per.gamma) 'degGamma' dataIn.axisType '\'];
+resFolder = checkPathSyntax(resFolder);
 mkdir([pathname outFolder resFolder]);
 resFolder = [pathname outFolder resFolder];
 

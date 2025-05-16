@@ -41,9 +41,9 @@ if strcmp(motorModel.data.axisType,'SR')
     index = find(id==max(Id,[],'all'));
     id(index) = NaN;
     iq(index) = NaN;
-    index = find(id==min(Id,[],'all'));
-    id(index) = NaN;
-    iq(index) = NaN;
+    % index = find(id==min(Id,[],'all'));
+    % id(index) = NaN;
+    % iq(index) = NaN;
     index = find(iq==max(Iq,[],'all'));
     id(index) = NaN;
     iq(index) = NaN;
@@ -53,7 +53,7 @@ if strcmp(motorModel.data.axisType,'SR')
     index = find(iq<0);
     id(index) = NaN;
     iq(index) = NaN;
-    
+
 else
     % index = find(id==max(Id,[],'all'));
     % id(index) = NaN;

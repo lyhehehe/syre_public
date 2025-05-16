@@ -25,6 +25,8 @@ switch library
         libName = 'materialLibrary\custom_sleeve.mat';
 end
 
+libName = checkPathSyntax(libName);
+
 prompt={'Yield strength [MPa]',...
         'Density [kg*m^-3]',...
         'Young Module [GPa]'};

@@ -20,7 +20,7 @@ MTPV = motorModel.controlTrajectories.MTPV;
 fdfq = motorModel.FluxMap_dq;
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'AOA - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'AOA - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 %% Figures
 % torque and torque ripple VS current

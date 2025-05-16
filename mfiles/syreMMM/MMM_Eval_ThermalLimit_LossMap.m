@@ -21,15 +21,15 @@ TPm_lim   = motorModel.Thermal.TempPmLimit;
 speed     = linspace(motorModel.Thermal.nmin,motorModel.Thermal.nmax,motorModel.Thermal.NumSpeed);
 
 if motorModel.Thermal.interpTempPM
-    [filename1, pathname1] = uigetfile([path '\' file '_results\FEA results' '\*.mat'], 'Pick the low temperature Flux Map');
+    [filename1, pathname1] = uigetfile(checkPathSyntax([path '\' file '_results\FEA results' '\*.mat']), 'Pick the low temperature Flux Map');
     fdfq1 = load([pathname1 filename1]);
 
-    [filename2, pathname2] = uigetfile([path '\' file '_results\FEA results' '\*.mat'], 'Pick the high temperature Flux Map');
+    [filename2, pathname2] = uigetfile(checkPathSyntax([path '\' file '_results\FEA results' '\*.mat']), 'Pick the high temperature Flux Map');
     fdfq2 = load([pathname2 filename2]);
 end
 
 
-[filename, pathname] = uigetfile([path '\' file '_results\MMM results' '\*.mat'], 'Pick a Tw Map');
+[filename, pathname] = uigetfile(checkPathSyntax([path '\' file '_results\MMM results' '\*.mat']), 'Pick a Tw Map');
 tmp = load([pathname filename]);
 TwData = tmp.TwData;
 TwMap  = tmp.TwMap;

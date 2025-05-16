@@ -23,7 +23,7 @@ nIter      = 1:1:numel(test.Idemag);
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Demagnetization Limit\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Demagnetization Limit\']);
 
 if isfield(motorModel,'mat')
     mat = motorModel.mat.LayerMag;

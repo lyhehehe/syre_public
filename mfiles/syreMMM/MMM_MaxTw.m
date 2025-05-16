@@ -22,6 +22,7 @@ Tem = motorModel.FluxMap_dq.T;
 TwData = motorModel.TnSetup;
 
 motorType = motorModel.data.motorType;
+axisType  = motorModel.data.axisType;
 
 nVect = linspace(TwData.nmin,TwData.nmax,TwData.nstep);
 TVect = linspace(TwData.Tmin,TwData.Tmax,TwData.Tstep);
@@ -96,75 +97,157 @@ if kRefineMap>1
     nPoints = kRefineMap*size(motorModel.FluxMap_dq.Id,1);
     motorModelFine = motorModel;
     motorModelFine.FluxMap_dq = mapsReInterpolation(motorModel.FluxMap_dq,'Id','Iq',nPoints,'linear');
+    if isfield(motorModel.FluxMap_dq,'IM')
+        tmp = motorModel.FluxMap_dq.IM;
+        tmp.Id = motorModel.FluxMap_dq.Id;
+        tmp.Iq = motorModel.FluxMap_dq.Iq;
+        tmpFine = mapsReInterpolation(tmp,'Id','Iq',nPoints,'linear');
+        tmpFine = rmfield(tmpFine,'Id');
+        tmpFine = rmfield(tmpFine,'Iq');
+        motorModelFine.FluxMap_dq.IM = tmpFine;
+    end
 else
     motorModelFine = motorModel;
 end
 
-disp('Map evaluation in progress...')
-fprintf(' %06.2f%%',0)
+out = cell(size(Tmap));
 
-for ii=1:numel(TwMap.n)
-    
-    [out] = calcTnPoint(motorModelFine,Tmap(ii),nmap(ii));
-    
-    % update figure and matrices
-    if ~isnan(out.T)
-        xdata = [get(hg,'XData') nmap(ii)];
-        ydata = [get(hg,'YData') Tmap(ii)];
-        set(hg,'XData',xdata,'YData',ydata);
-        drawnow();
-        
-        TwMap.Tout(ii)    = out.T;
-        TwMap.Id(ii)      = out.Id;
-        TwMap.Iq(ii)      = out.Iq;
-        TwMap.Fd(ii)      = out.Fd;
-        TwMap.Fq(ii)      = out.Fq;
-        TwMap.Tem(ii)     = out.Tem;
-        TwMap.Vo(ii)      = out.Vo;
-        TwMap.Io(ii)      = out.Io;
-        TwMap.Im(ii)      = out.Im;
-        TwMap.Iph(ii)     = out.Iph;
-        TwMap.Vph(ii)     = out.Vph;
-        TwMap.PF(ii)      = out.PF;
-        TwMap.P(ii)       = out.P;
-        TwMap.Ploss(ii)   = out.Ploss;
-        TwMap.Pjs(ii)     = out.Pjs;
-        TwMap.PjDC(ii)    = out.PjDC;
-        TwMap.PjAC(ii)    = out.PjAC;
-        TwMap.Pfe(ii)     = out.Pfe;
-        TwMap.Pfes(ii)    = out.Pfes;
-        TwMap.Pfer(ii)    = out.Pfer;
-        TwMap.Ppm(ii)     = out.Ppm;
-        TwMap.Pjr(ii)     = out.Pjr;
-        TwMap.Pmech(ii)   = out.Pmech;
-        TwMap.Eo(ii)      = out.Eo;
-        TwMap.Ife(ii)     = out.Ife;
-        TwMap.slip(ii)    = out.slip;
-        TwMap.Ir(ii)      = out.Ir;
-        TwMap.Rs(ii)      = out.Rs;
-        TwMap.dTpp(ii)    = out.dTpp;
-        TwMap.eff(ii)     = out.eff;
-        TwMap.Idemag(ii)  = out.Idemag;
-        TwMap.IHWC(ii)    = out.IHWC;
-        TwMap.F0(ii)      = out.F0;
-        TwMap.VUGO(ii)    = out.VUGO;
-        TwMap.ASCsafe(ii) = out.ASCsafe;
-        TwMap.UGOsafe(ii) = out.UGOsafe;
-    else
-        xdata = [get(hr,'XData') nmap(ii)];
-        ydata = [get(hr,'YData') Tmap(ii)];
-        set(hr,'XData',xdata,'YData',ydata);
-        drawnow();
-%         pause(0.01);
+ppState=parallelComputingCheck();
+
+tic
+
+if ppState<1
+    disp('Map evaluation in progress...')
+    fprintf(' %06.2f%%',0)
+    for ii=1:numel(Tmap)
+        out{ii} = calcTnPoint(motorModelFine,Tmap(ii),nmap(ii));
+        if ~isnan(out{ii}.T)
+            xdata = [get(hg,'XData') nmap(ii)];
+            ydata = [get(hg,'YData') Tmap(ii)];
+            set(hg,'XData',xdata,'YData',ydata);
+            drawnow();
+        else
+            xdata = [get(hr,'XData') nmap(ii)];
+            ydata = [get(hr,'YData') Tmap(ii)];
+            set(hr,'XData',xdata,'YData',ydata);
+            drawnow();
+        end
+        fprintf('\b\b\b\b\b\b\b')
+        fprintf('%06.2f%%',ii/numel(TwMap.n)*100)
     end
-    
-    fprintf('\b\b\b\b\b\b\b')
-    fprintf('%06.2f%%',ii/numel(TwMap.n)*100)
-
+else
+    disp('Map evaluation in progress with parallel computing...')
+    parfor ii=1:numel(Tmap)
+        out{ii} = calcTnPoint(motorModelFine,Tmap(ii),nmap(ii));
+    end
 end
+
+% load data from out
+for ii=1:numel(TwMap.n)
+    TwMap.Tout(ii)    = out{ii}.T;
+    TwMap.Id(ii)      = out{ii}.Id;
+    TwMap.Iq(ii)      = out{ii}.Iq;
+    TwMap.Fd(ii)      = out{ii}.Fd;
+    TwMap.Fq(ii)      = out{ii}.Fq;
+    TwMap.Tem(ii)     = out{ii}.Tem;
+    TwMap.Vo(ii)      = out{ii}.Vo;
+    TwMap.Io(ii)      = out{ii}.Io;
+    TwMap.Im(ii)      = out{ii}.Im;
+    TwMap.Iph(ii)     = out{ii}.Iph;
+    TwMap.Vph(ii)     = out{ii}.Vph;
+    TwMap.PF(ii)      = out{ii}.PF;
+    TwMap.P(ii)       = out{ii}.P;
+    TwMap.Ploss(ii)   = out{ii}.Ploss;
+    TwMap.Pjs(ii)     = out{ii}.Pjs;
+    TwMap.PjDC(ii)    = out{ii}.PjDC;
+    TwMap.PjAC(ii)    = out{ii}.PjAC;
+    TwMap.Pfe(ii)     = out{ii}.Pfe;
+    TwMap.Pfes(ii)    = out{ii}.Pfes;
+    TwMap.Pfer(ii)    = out{ii}.Pfer;
+    TwMap.Ppm(ii)     = out{ii}.Ppm;
+    TwMap.Pjr(ii)     = out{ii}.Pjr;
+    TwMap.Pmech(ii)   = out{ii}.Pmech;
+    TwMap.Eo(ii)      = out{ii}.Eo;
+    TwMap.Ife(ii)     = out{ii}.Ife;
+    TwMap.slip(ii)    = out{ii}.slip;
+    TwMap.Ir(ii)      = out{ii}.Ir;
+    TwMap.Rs(ii)      = out{ii}.Rs;
+    TwMap.dTpp(ii)    = out{ii}.dTpp;
+    TwMap.eff(ii)     = out{ii}.eff;
+    TwMap.Idemag(ii)  = out{ii}.Idemag;
+    TwMap.IHWC(ii)    = out{ii}.IHWC;
+    TwMap.F0(ii)      = out{ii}.F0;
+    TwMap.VUGO(ii)    = out{ii}.VUGO;
+    TwMap.ASCsafe(ii) = out{ii}.ASCsafe;
+    TwMap.UGOsafe(ii) = out{ii}.UGOsafe;
+end
+
+
+
+% for ii=1:numel(TwMap.n)
+% 
+%     [out] = calcTnPoint(motorModelFine,Tmap(ii),nmap(ii));
+% 
+%     % update figure and matrices
+%     if ~isnan(out.T)
+%         xdata = [get(hg,'XData') nmap(ii)];
+%         ydata = [get(hg,'YData') Tmap(ii)];
+%         set(hg,'XData',xdata,'YData',ydata);
+%         drawnow();
+% 
+%         TwMap.Tout(ii)    = out.T;
+%         TwMap.Id(ii)      = out.Id;
+%         TwMap.Iq(ii)      = out.Iq;
+%         TwMap.Fd(ii)      = out.Fd;
+%         TwMap.Fq(ii)      = out.Fq;
+%         TwMap.Tem(ii)     = out.Tem;
+%         TwMap.Vo(ii)      = out.Vo;
+%         TwMap.Io(ii)      = out.Io;
+%         TwMap.Im(ii)      = out.Im;
+%         TwMap.Iph(ii)     = out.Iph;
+%         TwMap.Vph(ii)     = out.Vph;
+%         TwMap.PF(ii)      = out.PF;
+%         TwMap.P(ii)       = out.P;
+%         TwMap.Ploss(ii)   = out.Ploss;
+%         TwMap.Pjs(ii)     = out.Pjs;
+%         TwMap.PjDC(ii)    = out.PjDC;
+%         TwMap.PjAC(ii)    = out.PjAC;
+%         TwMap.Pfe(ii)     = out.Pfe;
+%         TwMap.Pfes(ii)    = out.Pfes;
+%         TwMap.Pfer(ii)    = out.Pfer;
+%         TwMap.Ppm(ii)     = out.Ppm;
+%         TwMap.Pjr(ii)     = out.Pjr;
+%         TwMap.Pmech(ii)   = out.Pmech;
+%         TwMap.Eo(ii)      = out.Eo;
+%         TwMap.Ife(ii)     = out.Ife;
+%         TwMap.slip(ii)    = out.slip;
+%         TwMap.Ir(ii)      = out.Ir;
+%         TwMap.Rs(ii)      = out.Rs;
+%         TwMap.dTpp(ii)    = out.dTpp;
+%         TwMap.eff(ii)     = out.eff;
+%         TwMap.Idemag(ii)  = out.Idemag;
+%         TwMap.IHWC(ii)    = out.IHWC;
+%         TwMap.F0(ii)      = out.F0;
+%         TwMap.VUGO(ii)    = out.VUGO;
+%         TwMap.ASCsafe(ii) = out.ASCsafe;
+%         TwMap.UGOsafe(ii) = out.UGOsafe;
+%     else
+%         xdata = [get(hr,'XData') nmap(ii)];
+%         ydata = [get(hr,'YData') Tmap(ii)];
+%         set(hr,'XData',xdata,'YData',ydata);
+%         drawnow();
+% %         pause(0.01);
+%     end
+% 
+%     fprintf('\b\b\b\b\b\b\b')
+%     fprintf('%06.2f%%',ii/numel(TwMap.n)*100)
+% 
+% end
 
 disp(' ')
 disp('Maps Evaluated');
+
+toc
 
 %TwMap.dTpp = interp2(motorModel.FluxMap_dq.Id,motorModel.FluxMap_dq.Iq,motorModel.FluxMap_dq.dTpp,TwMap.Id,TwMap.Iq);
 
@@ -178,7 +261,7 @@ TwMap.limits.Tmin(TwMap.limits.Tmin>0) = 0;
 
 pathname = motorModel.data.pathname;
 motName = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'TwMap_' datestr(now,30) '\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'TwMap_' datestr(now,30) '\']);
 
 resFolderOut = [pathname resFolder];
 

@@ -20,7 +20,7 @@ ironLoss = motorModel.IronPMLossMap_dq;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Iron Loss Model - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Iron Loss Model - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 n0 = ironLoss.n0;
 f0 = ironLoss.f0;

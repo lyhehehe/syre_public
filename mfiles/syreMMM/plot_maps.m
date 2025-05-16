@@ -34,7 +34,7 @@ if (nargin<1)
     [FILENAME, pathname, FILTERINDEX] = uigetfile(['.mat'], 'LOAD DATA');
     load([pathname FILENAME]);
 else
-    load([pathname '\' filename])
+    load(checkPathSyntax([pathname '\' filename]))
 end
 
 % Fd Fq curves

@@ -34,12 +34,12 @@ end
 
 clc
 
-resFolder = [filename(1:end-4) '_results\FEA results\'];
+resFolder = checkPathSyntax([filename(1:end-4) '_results\FEA results\']);
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder]);
 end
 
-newDir = ['structural_' int2str(evalSpeed) 'rpm\'];
+newDir = checkPathSyntax(['structural_' int2str(evalSpeed) 'rpm\']);
 
 newDir = [pathname resFolder newDir];
 mkdir(newDir);

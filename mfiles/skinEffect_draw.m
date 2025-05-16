@@ -320,12 +320,12 @@ dataSet.SlotConductorNumber     = geo.win.nCond;
 % save model
 pathname = dataSet.currentpathname;
 filename = dataSet.currentfilename;
-outFolder = [filename(1:end-4) '_results\FEA results\'];
+outFolder = checkPathSyntax([filename(1:end-4) '_results\FEA results\']);
 if ~exist([pathname outFolder],'dir')
     mkdir([pathname outFolder]);
 end
 
-resFolder = [pathname outFolder filename(1:end-4) '_slotModel\'];
+resFolder = checkPathSyntax([pathname outFolder filename(1:end-4) '_slotModel\']);
 
 mkdir(resFolder);
 

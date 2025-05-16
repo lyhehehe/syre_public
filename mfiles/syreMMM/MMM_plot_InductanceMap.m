@@ -27,7 +27,7 @@ axisType = motorModel.data.axisType;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Incremental Inductance Maps - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Incremental Inductance Maps - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 %% Surfaces
 figNames{1} = 'InducDD';

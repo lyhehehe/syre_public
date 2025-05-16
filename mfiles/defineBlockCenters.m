@@ -53,10 +53,18 @@ if ~isempty(xair)
     xmag = [xmag(mirrorFlag==1)'; xmag(mirrorFlag==1)';  xmag(mirrorFlag==0)'];
     ymag = [ymag(mirrorFlag==1)'; -ymag(mirrorFlag==1)'; -ymag(mirrorFlag==0)'];
     zmag = [zmag(mirrorFlag==1)'; zmag(mirrorFlag==1)';  zmag(mirrorFlag==0)'];
-    BarCenter = [
-        xc,yc,codMatBar*ones(length(xc),1),res*ones(length(xc),1),1*ones(length(xc),1),xmag,ymag,zmag;
-        xair,yair,codMatAirRot*ones(length(xair),1),res*ones(length(xair),1),1*ones(length(xair),1),zeros(length(xair),1),zeros(length(xair),1),zeros(length(xair),1)
-        ];
+    if strcmp(geo.RotType, 'EESM')
+        zmag = [1; -1]; % for EESM, it is the current direction in the rotor
+        BarCenter = [
+            xc,yc,codMatCuRot*ones(length(xc),1),res*ones(length(xc),1),1*ones(length(xc),1),xmag,ymag,zmag;
+            xair,yair,codMatAirRot*ones(length(xair),1),res*ones(length(xair),1),1*ones(length(xair),1),zeros(length(xair),1),zeros(length(xair),1),zeros(length(xair),1)
+            ];
+    else
+        BarCenter = [
+            xc,yc,codMatBar*ones(length(xc),1),res*ones(length(xc),1),1*ones(length(xc),1),xmag,ymag,zmag;
+            xair,yair,codMatAirRot*ones(length(xair),1),res*ones(length(xair),1),1*ones(length(xair),1),zeros(length(xair),1),zeros(length(xair),1),zeros(length(xair),1)
+            ];
+    end
 
 else
     xc   = [xc';xc'];

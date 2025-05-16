@@ -64,12 +64,19 @@ switch geo.RotType
         % build nodes , lines and arcs for half a pole
         [geo,mat,temp] = nodes_rotor_Spoke(geo,mat);
         rotor = build_matrix_Spoke(temp,geo);
+    case 'EESM'
+        [geo,mat,temp] = nodes_rotor_EESM(geo,mat);
+        rotor = build_matrix_EESM(temp,geo);
 end
 
 % check about the PM area (to add to the nodes_rotor_xxx.m functions)
 if ~isfield(geo,'AreaCMax')
     geo.AreaCMax=zeros(1,geo.nlay);
     geo.AreaEMax=zeros(1,geo.nlay);
+end
+
+if ~isfield(geo,'Acoilf')
+    geo.Acoilf = 0;
 end
 
 if size(rotor,2)==7

@@ -43,6 +43,9 @@ if strcmp(geo.RotType,'SPM') || strcmp(geo.RotType,'Vtype') || strcmp(geo.RotTyp
 elseif strcmp(geo.RotType,'Spoke-type')
     geo.axisType = 'PM';
     phase1_offset = phase1_offset;
+elseif strcmp(geo.RotType,'EESM')
+    geo.axisType = 'SR';
+    phase1_offset = phase1_offset+90; 
 else
     geo.axisType = 'SR';
     phase1_offset = phase1_offset;
@@ -99,7 +102,6 @@ mi_addboundprop('AGap', 0, 0, 0, 0, 0, 0, 0, 0, geo.periodicity+2,0,0);
 % nodes
 geo.x0 = geo.r/cos(pi/2/geo.p);
 % geo.x0 = (geo.r-geo.hs)/cos(pi/2/geo.p);
-
 
 [rotor,BLKLABELSrot,geo,mat] = ROTmatr(geo,fem,mat); % rotor and BLKLABELSrot describe the rotor
 geo.rotor = rotor;

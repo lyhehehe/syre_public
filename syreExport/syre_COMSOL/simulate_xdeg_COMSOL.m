@@ -17,12 +17,12 @@ function [SOL] = simulate_xdeg_COMSOL(geo,per,eval_type,pathname,filename)
 % Connessione a COMSOL e Apertura modello impostato
 import com.comsol.model.*
 import com.comsol.model.util.*
-model = mphopen([pathname filename(1:end-4), '.mph']);
+model = mphopen([strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\'), filename(1:end-4), '.mph']);
 
 load([filename(1:end-4), '.mat']);
 
 % Definizione della directory di output per i file CSV
-csv_dir = 'C:\Users\S296193\Desktop\syre_developers_20240610\motorExamples\csv';
+csv_dir = strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\');
 
 % Creazione dei percorsi completi per i file CSV
 torque_csv = fullfile(csv_dir, [filename(1:end-4), '_Torque.csv']);
@@ -50,11 +50,13 @@ eval_type = 'singt';
 model.component('comp1').physics('rmm').prop('ShapeProperty').set('order_magneticvectorpotential', 1);
 
 p = geo.p;                                  % paia poli macchina
-theta_e = 2;                                % intervallo angolare elettrico [deg]
+theta_e = per.delta_sim_singt*(per.nsim_singt-1)/per.nsim_singt;                                % intervallo angolare elettrico [deg]
 w = per.EvalSpeed*pi/30;                    % velocità di rotazione [rad/s]
-theta = theta_e*pi/180/p;                   % angolo meccanico [rad]
-ts = theta / w;                             % vettore di time steps [s]
-t = ts*360/theta_e;                         % time step [s]
+%theta = theta_e*pi/180/p;                   % angolo meccanico [rad]
+% ts = theta / w;                             % delta time steps [s]
+% t = ts*(per.nsim_singt-1);                      % time step [s]
+t = per.delta_sim_singt/p/w/180*pi*(per.nsim_singt-1)/per.nsim_singt; 
+ts = per.delta_sim_singt/p/w/180*pi/per.nsim_singt;          
 freq = w*p/2/pi;                            % frequenza di alimentazione [Hz]
 theta_m_tot = w*t*180/pi;                   % angolo meccanico di simulazione [deg]
 theta_e_tot = 2*pi*freq*t*180/pi;           % angolo elettrico di simulazione [deg]
@@ -323,26 +325,33 @@ model.result().export('tbl7').run();
 pause(0.1);
 
 % Saving Solved Model
-pathname_solved = 'C:\Users\S296193\Desktop\syre_developers_20240610\motorExamples\';
+pathname_solved = strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\');
 
 mphsave(model, [pathname_solved filename(1:end-4), '_solved.mph']);
 
 %% Post-processing (Impostazione struttura SOL)
 
 % Coppia Motrice (Arkkio)
-axial_torque = readmatrix(fullfile(torque_csv));
+axial_torque = readmatrix(torque_csv, 'NumHeaderLines', 5);
 tempo = [axial_torque(:, 1)]';
-Tor = [axial_torque(:, 2)]'; 
-theta_elt = tempo*2*pi*freq+geo.th0*pi/180-pi/2;
-theta_elt_deg = theta_elt*180/pi;
+Tor = [axial_torque(:, 2)]';
+Tor = repmat(Tor,1,360/per.delta_sim_singt);
+% theta_elt = tempo*2*pi*freq+geo.th0*pi/180;%-pi/2;
+% theta_elt_deg = theta_elt*180/pi;
+theta_elt_deg = linspace(0,360,(per.nsim_singt)*360/per.delta_sim_singt);
+theta_abc2dq = (linspace(0,360-per.delta_sim_singt/per.nsim_singt,(per.nsim_singt)*360/per.delta_sim_singt) - geo.th0)*pi/180;
 
 % Flussi concatenati 
-concatenated_flux = readmatrix(flux_csv);
+concatenated_flux = readmatrix(flux_csv, 'NumHeaderLines', 5);
 lambda_1 = [concatenated_flux(:, 2)]'; 
 lambda_2 = [concatenated_flux(:, 3)]'; 
 lambda_3 = [concatenated_flux(:, 4)]';
+lambda_360 = phaseQuantityDecoding(lambda_1,lambda_2,lambda_3,per.delta_sim_singt);
+lambda_1 = lambda_360.a;
+lambda_2 = lambda_360.b;
+lambda_3 = lambda_360.c;
 
-lambda_dq = abc2dq(lambda_1, lambda_2, lambda_3, theta_elt);
+lambda_dq = abc2dq(lambda_1, lambda_2, lambda_3, theta_abc2dq);%theta_elt);
 lambda_d = lambda_dq(1, :);
 lambda_q = lambda_dq(2, :);
 
@@ -350,31 +359,35 @@ lambda_mod = abs(lambda_d + 1i*lambda_q);         % modulo flusso [Vs]
 lambda_arg = angle(lambda_mod(end));              % angolo flusso [rad]
 
 % Correnti
-currents = readmatrix(current_csv);
-tempo_i = [currents(:, 1)]';
+currents = readmatrix(current_csv, 'NumHeaderLines', 5);
+%tempo_i = [currents(:, 1)]';
 i_1 = [currents(:, 2)]'; 
 i_2 = [currents(:, 3)]'; 
-i_3 = [currents(:, 4)]'; 
-theta_i_deg = tempo_i*2*pi*freq/pi*180+geo.th0-90;
+i_3 = [currents(:, 4)]';
+i_360 = phaseQuantityDecoding(i_1,i_2,i_3,per.delta_sim_singt);
+i_1 = i_360.a;
+i_2 = i_360.b;
+i_3 = i_360.c;
+%theta_i_deg = tempo_i*2*pi*freq/pi*180+geo.th0-90;
 
-i_dq = abc2dq(i_1, i_2, i_3, theta_i_deg*pi/180);
+i_dq = abc2dq(i_1, i_2, i_3, theta_abc2dq);%theta_i_deg*pi/180);
 id_pp = i_dq(1, :);
 iq_pp = i_dq(2, :);
 
 % Pfe rotore
-Pfe_rotore = readmatrix(Pfe_r_csv);
+Pfe_rotore = readmatrix(Pfe_r_csv, 'NumHeaderLines', 5);
 Pfer = Pfe_rotore(1: 1);
 
 % Pfe statore
-Pfe_statore = readmatrix(Pfe_s_csv);
+Pfe_statore = readmatrix(Pfe_s_csv, 'NumHeaderLines', 5);
 Pfes = Pfe_statore(1: 1);
 
 % PM losses
-Ppm_mat = readmatrix(PM_losses_csv);
+Ppm_mat = readmatrix(PM_losses_csv, 'NumHeaderLines', 5);
 Ppm = Ppm_mat(1: 1);
 
 % Pj Barriere di flusso rotore
-PjrBar_mat = readmatrix(PjrBar_csv);
+PjrBar_mat = readmatrix(PjrBar_csv, 'NumHeaderLines', 5);
 PjrBar = PjrBar_mat(1: 1);
 
 SOL.Pfes   = Pfes;

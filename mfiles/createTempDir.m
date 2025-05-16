@@ -23,9 +23,9 @@ warning off MATLAB:MKDIR:DirectoryExists
 thisfilepath = fileparts(which('GUI_Syre.mlapp'));
 mkdir(fullfile(thisfilepath,'tmp'));
 warning on MATLAB:MKDIR:DirectoryExists
-while(exist([thisfilepath '\tmp\' dirName],'dir'))
+while(exist(checkPathSyntax([thisfilepath '\tmp\' dirName]),'dir'))
     mang=num2str(randi((10^6),1));
     dirName=mang(1:end);
 end
-dirName=[thisfilepath '\tmp\' dirName '\'];
+dirName=checkPathSyntax([thisfilepath '\tmp\' dirName '\']);
 mkdir(dirName);

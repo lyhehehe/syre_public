@@ -14,7 +14,7 @@
 
 function MMM_print_MotorDataH_PLECS(motorModel)
 
-MotorDataH_path = [motorModel.data.pathname motorModel.data.motorName '_ctrl_PLECS\User_functions\Inc\MotorData.h'];
+MotorDataH_path = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_ctrl_PLECS\User_functions\Inc\MotorData.h']);
 
 MTPA = motorModel.controlTrajectories.MTPA;
 MTPV = motorModel.controlTrajectories.MTPV;

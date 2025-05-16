@@ -1,6 +1,5 @@
 function [T_VSD] = ComputeVSD(n_set)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+
 %% ------------------------Define parameters------------------------------%
 
 l = n_set;      % number of winding sets

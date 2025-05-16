@@ -18,9 +18,9 @@ modelType = motorModel.SyreDrive.modelSetup.modelType;
 
 switch(modelType)
     case 'Average'
-        MotorDataH_path = [motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\MotorData.h'];
+        MotorDataH_path = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\MotorData.h']);
     case 'Istantaneous'
-        MotorDataH_path = [motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\MotorData.h'];
+        MotorDataH_path = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\MotorData.h']);
 end
 
 MTPA = motorModel.controlTrajectories.MTPA;

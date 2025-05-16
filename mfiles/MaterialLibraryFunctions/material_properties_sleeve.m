@@ -14,7 +14,7 @@
 
 function [mat] = material_properties_sleeve(MatName)
 
-load('materialLibrary\sleeve_material.mat')
+load(checkPathSyntax('materialLibrary\sleeve_material.mat'))
 
 ind=0;
 
@@ -29,7 +29,7 @@ matListBase = MatList;
 if ind~=0
     mat=MatLib{ind};
 else
-    load('materialLibrary\custom_sleeve.mat')
+    load(checkPathSyntax('materialLibrary\custom_sleeve.mat'))
     ind=0;
     for ii=1:length(MatList)
         if strcmp(MatList{ii},MatName)

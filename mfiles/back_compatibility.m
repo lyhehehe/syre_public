@@ -423,8 +423,8 @@ if ~isfield(dataSet,'PMdim')
     dataSet.PMtemp = 20;
     if strcmp(dataSet.TypeOfRotor,'Seg')
         if isfield(dataSet,'Areavert')
-            dataSet.PMdim      = [dataSet.Areaob;dataSet.Areavert];
-            dataSet.PMdim      = dataSet.PMdim(:,1:dataSet.NumOfLayers)./[dataSet.HCmm;dataSet.HCmm];
+            dataSet.PMdim      = [dataSet.Areaob(1:dataSet.NumOfLayers);dataSet.Areavert(1:dataSet.NumOfLayers)];
+            %dataSet.PMdim      = dataSet.PMdim(:,1:dataSet.NumOfLayers)./[dataSet.HCmm;dataSet.HCmm];
             dataSet.PMdim(2,1) = 0;
             dataSet = rmfield(dataSet,'dob');
             dataSet = rmfield(dataSet,'dvert');
@@ -1127,6 +1127,96 @@ if ~isfield(dataSet,'LaminationStackingFactor')
     flag=1;
 end
 
+% added EESM machine
+if ~isfield(dataSet,'FieldCurrent')
+    dataSet.FieldCurrent = 0;
+    dataSet.YokeWidth = 0;
+    dataSet.PoleBodyHeight = 0;
+    dataSet.PoleHeadHeight = 0;
+    % dataSet.PoleAnglepu = 0;
+    dataSet.PoleWidth = 0;
+    dataSet.CoilWidth = 0;
+    if Dflag
+        disp('2024 11 25 - added EESM rotor geometry')
+    end
+    flag = 1;
+end
+% added Extra parameters to EESM machine
+if ~isfield(dataSet,'CoilHeight')
+    dataSet.CoilHeight = 0;
+    dataSet.PoleRotHeadFillet = 0;
+    dataSet.PoleRotHeadAngle = 0;
+    if Dflag
+        disp('2025 04 10 - added for EESM rotor geometry')
+    end
+    flag = 1;
+end
+
+% EESM parametrization improvement and optimization
+if ~isfield(dataSet,'CoilHeightBou')
+
+    dataSet.YokeWidthBou              = [10 20];
+    dataSet.YokeWidthBouCheck         = 0;
+    dataSet.PoleBodyHeightBou         = [5 20];
+    dataSet.PoleBodyHeightBouCheck    = 0;
+    % dataSet.PoleHeadHeightBou         = [2 10];
+    % dataSet.PoleHeadHeightBouCheck    = 0;
+    dataSet.PoleAnglepuBou            = [0.5 0.8];
+    dataSet.PoleAnglepuBouCheck       = 0;
+    dataSet.PoleWidthBou              = [5 20];
+    dataSet.PoleWidthBouCheck         = 0;
+    dataSet.CoilWidthBou              = [2 5];
+    dataSet.CoilWidthBouCheck         = 0;
+    dataSet.CoilHeightBou             = [5 10];
+    dataSet.CoilHeightBouCheck        = 0;
+    dataSet.PoleRotHeadFilletBou      = [0.5 1];
+    dataSet.PoleRotHeadFilletBouCheck = 0;
+    dataSet.PoleRotHeadAngleBou       = [0 5];
+    dataSet.PoleRotHeadAngleBouCheck  = 0;
+
+    if Dflag
+        disp('2024 04 11 - added EESM optimization parameters')
+    end
+    flag = 1;
+end
+
+% EESM parametrization improvement and optimization
+if ~isfield(dataSet,'RatedFieldCurrent')
+    
+    dataSet.FieldTurns = 1;
+    dataSet.RotorCurrentDensity = 20;
+    dataSet.RotorConductorFillingFactor = 0.6;
+    dataSet.Rf = 0;
+    dataSet.RatedFieldCurrent = NaN;
+
+    if Dflag
+        disp('2024 04 11 - added rotor current density for EESM')
+    end
+    flag = 1;
+end
+
+% EESM field/stator current density ratio for optimization
+if ~isfield(dataSet,'FieldStatorCurrentDensityRatio')
+    dataSet.FieldStatorCurrentDensityRatio = dataSet.RotorCurrentDensity/dataSet.CurrentDensity;
+
+    if Dflag
+        disp('2024 04 14 - added field by stator current density ratio for optimization')
+    end
+    flag = 1;
+end
+
+% Stator and rotor Joule loss as optimization objectives
+if ~isfield(dataSet,'StatorJouleLossOptCheck')
+    dataSet.StatorJouleLossOptCheck = 0;
+    dataSet.FieldJouleLossOptCheck  = 0;
+    dataSet.MaxExpPjs               = 5000;
+    dataSet.MaxExpPjf               = 1000;
+
+    if Dflag
+        disp('2024 04 15 - added stator and field Joule loss as optimization objectives')
+    end
+    flag = 1;
+end
 
 %% remove old fields of dataSet
 flagClear = 0;
@@ -1236,6 +1326,24 @@ if (length(dataSet.RQ)~=length(dataSet.RQnames) || length(geo.RQ)~=length(dataSe
         disp('rev274 - correct RQ and RQnames')
     end
 %     flag=1;
+end
+
+% check FEAfixN
+if dataSet.FEAfixN==0
+    dataSet.FEAfixN = 1;
+    if Dflag
+        disp('Correct FEAfix number of simulations')
+    end
+end
+
+% check axis type for EESM
+if strcmp(dataSet.TypeOfRotor,'EESM')
+    if strcmp(dataSet.axisType,'PM')
+        dataSet.axisType = 'SR';
+        if Dflag
+            disp('Correct axis type for EESM')
+        end
+    end
 end
 
 % message in command window if some data are added

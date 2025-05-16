@@ -12,16 +12,22 @@
 %    See the License for the specific language governing permissions and
 %    limitations under the License.
 
-function [out] = calcTnPoint(motorModel,Tref,nref)
+function [out] = calcTnPoint(motorModel,Tref,nref,debug)
 
 % fdfq   = motorModel.FluxMap_dq;
 % TwData = motorModel.TnSetup;
 
+if nargin()==3
+    debug=0;
+end
+
 kActiveSets = 4/4;
 
-% if kActiveSets~=1
-%     warning('Some 3phase sets are turned off!!!')
-% end
+flagASC = 0;
+
+if kActiveSets~=1
+    warning('Some 3phase sets are turned off!!!')
+end
 
 Id   = motorModel.FluxMap_dq.Id;
 Iq   = motorModel.FluxMap_dq.Iq;
@@ -29,6 +35,8 @@ Fd   = motorModel.FluxMap_dq.Fd;
 Fq   = motorModel.FluxMap_dq.Fq;
 Tem  = motorModel.FluxMap_dq.T;
 dTpp = motorModel.FluxMap_dq.dTpp;
+
+
 
 % IdMin = min(motorModel.FluxMap_dq.Id(:));
 % IdMax = max(motorModel.FluxMap_dq.Id(:));
@@ -68,6 +76,17 @@ MechLoss         = motorModel.TnSetup.MechLoss;
 Control          = motorModel.TnSetup.Control;
 DemagLimit       = motorModel.DemagnetizationLimit;
 ACSsafeFlag      = motorModel.TnSetup.ASCsafeFlag;
+
+if strcmp(motorType,'PM')
+    if strcmp(axisType,'PM')
+        Tem(Iq==0) = 0;
+    else
+        Tem(Id==0) = 0;
+    end
+else
+    Tem(Id==0) = 0;
+    Tem(Iq==0) = 0;
+end
 
 if strcmp(motorType,'IM')
     IM = motorModel.FluxMap_dq.IM;
@@ -130,6 +149,11 @@ end
 % 5) Current component representing Fe and PM loss and total current
 Ife=2/3/(n3phase*kActiveSets)*Pfe./conj(Vind);
 Ife(Pfe==0)=0;
+% IdFe = real(Ife);
+% IqFe = imag(Ife);
+% IdFe = smoothdata2(IdFe);
+% IqFe = smoothdata2(IqFe);
+% Ife = IdFe+j*IqFe;
 
 if Tref>=0
     Io=I+Ife;
@@ -182,6 +206,10 @@ else
     lim(angle(I)<pi/2) = NaN;
 end
 
+if debug
+    keyboard
+end
+
 if strcmp(ACSsafeFlag,'Yes')
     Idemag = interp1(DemagLimit.tempPM,DemagLimit.Idemag,motorModel.data.tempPM);
     switch motorModel.data.axisType
@@ -198,7 +226,7 @@ if strcmp(ACSsafeFlag,'Yes')
     lim(abs(Fd+j*Fq)>=FlimASC) = NaN;
 end
 
-Ploss = Ploss.*lim;
+% Ploss = Ploss.*lim;
 
 % 11) Mechanical torque computation
 if Tref>=0
@@ -211,11 +239,21 @@ T(isnan(T)) = Tem(isnan(T)); % avoid error for zero speed
 
 if abs(Tref)<=max(max(T))
     % Extract (id,iq) curve @ T=cost
-    c = contourc(unique(Id),unique(Iq),T,abs(Tref*[1 1]));
-    idIso = c(1,2:end);
-    iqIso = c(2,2:end);
+    if Tref==0
+        if strcmp(axisType,'PM')
+            idIso = unique(Id(Id<0));
+            iqIso = zeros(size(idIso));
+        else
+            iqIso = unique(Iq(Iq>0));
+            idIso = zeros(size(iqIso));
+        end
+    else
+        c = contourc(unique(Id),unique(Iq),T,abs(Tref*[1 1]));
+        idIso = c(1,2:end);
+        iqIso = c(2,2:end);
+    end
     if strcmp(Control,'Max efficiency')
-        PlossIso = interp2(Id,Iq,Ploss,idIso,iqIso);
+        PlossIso = interp2(Id,Iq,Ploss.*lim,idIso,iqIso);
     elseif strcmp(Control,'MTPA')
         PlossIso = interp2(Id,Iq,3/2*n3phase*kActiveSets*Rs.*Io_m.^2.*lim,idIso,iqIso);
     end
@@ -386,6 +424,25 @@ out.IHWC = interp1(fTmp,iTmp,abs(out.Fd+j*out.Fq),'linear','extrap');
 out.F0 = interp2(Id,Iq,abs(Fd+j*Fq),0,0);
 out.VUGO = out.F0*nref*pi/30*p*sqrt(3);
 
+if flagASC
+    if nref==0
+        out.IASC = NaN;
+    else
+        motorModel.WaveformSetup.ACLossFlag   = 'No';
+        motorModel.WaveformSetup.IronLossFlag = 'No';
+        motorModel.WaveformSetup.EvalSpeed    = nref;
+        motorModel.WaveformSetup.CurrAmpl     = abs(out.Id+j*out.Iq);
+        motorModel.WaveformSetup.CurrAngle    = angle(out.Id+j*out.Iq)*180/pi;
+        motorModel.WaveformSetup.CurrLoad     = motorModel.WaveformSetup.CurrAmpl/motorModel.data.i0;
+        motorModel.WaveformSetup.nCycle       = 1;
+        motorModel.WaveformSetup.flagPlot     = 0;
+        [TSCout,~] = MMM_eval_shortCircuit_transient(motorModel,0,0);
+        out.IASC = max(abs(TSCout.Im));
+    end
+else
+    out.IASC = NaN;
+end
+
 
 
 if ~isempty(DemagLimit)
@@ -408,6 +465,12 @@ else
     else
         out.ASCsafe = 0;
     end
+end
+
+if isnan(out.T)
+    out.UGOsafe = NaN;
+    out.ASCsafe = NaN;
+    out.VUGO    = NaN;
 end
 
 

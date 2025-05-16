@@ -35,7 +35,7 @@ for ii=1:length(id)
     if ~contains(gammaStr,'d')
         gammaStr=[gammaStr 'd'];
     end
-    resFolder=[motorName '_results\MMM results\' 'T_eval_' iStr '_' gammaStr ' - ' int2str(motorModel.data.tempPM) 'deg\'];
+    resFolder=checkPathSyntax([motorName '_results\MMM results\' 'T_eval_' iStr '_' gammaStr ' - ' int2str(motorModel.data.tempPM) 'deg\']);
     mkdir(pathname,resFolder);
     SOL.th = dqtMap.th;
     SOL.id = id(ii)*ones(size(SOL.th));
@@ -190,7 +190,7 @@ for ii=1:length(id)
 end
 
 if length(id)>1
-    resFolder=[motorName '_results\MMM results\senseOut - ' int2str(motorModel.data.tempPM) 'deg - ' datestr(now,30) '\'];
+    resFolder=checkPathSyntax([motorName '_results\MMM results\senseOut - ' int2str(motorModel.data.tempPM) 'deg - ' datestr(now,30) '\']);
     mkdir(pathname,resFolder);
     %save([pathname resFolder 'senseResults.mat'],'output')
     

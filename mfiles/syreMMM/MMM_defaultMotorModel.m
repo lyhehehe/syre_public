@@ -14,7 +14,7 @@
 
 function [motorModel] = MMM_defaultMotorModel()
 
-data.pathname   = [fileparts(which('GUI_Syre.mlapp')) '\'];
+data.pathname   = checkPathSyntax([fileparts(which('GUI_Syre.mlapp')) '\']);
 data.motorName  = 'No motor selected';
 data.i0         = 0;
 data.Imax       = 1;

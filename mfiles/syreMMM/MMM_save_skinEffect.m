@@ -17,7 +17,7 @@ function MMM_save_skinEffect(motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Skin Effect Model\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Skin Effect Model\']);
 
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder])

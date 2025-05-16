@@ -17,11 +17,11 @@ function [motorModel] = MMM_changePMtemperature(motorModel,tempPM)
 
 if strcmp(tempPM,'Add')
     % add new PM temperature
-    FEAfolder = [motorModel.data.pathname motorModel.data.motorName '_results\FEA results\'];
+    FEAfolder = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_results\FEA results\']);
     if ~exist('FEAfolder','dir')
         FEAfolder = motorModel.data.pathname;
     end
-    [filename,pathname] = uigetfile([FEAfolder '\*.mat'],'Load new fdfq_idiq model');
+    [filename,pathname] = uigetfile(checkPathSyntax([FEAfolder '*.mat']),'Load new fdfq_idiq model');
     if filename
         data = load([pathname filename]);
         [fdfq,tempPM] = MMM_load_fdfq(data,motorModel.data.p);

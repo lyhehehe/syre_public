@@ -17,7 +17,7 @@ function MMM_print_fdfq(motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'C code LUTs\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'C code LUTs\']);
 
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder]);

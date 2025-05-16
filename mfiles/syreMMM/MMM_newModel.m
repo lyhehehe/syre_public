@@ -15,7 +15,7 @@
 function [motorModel] = MMM_newModel()
 
 
-[filename,pathname] = uiputfile([cd '\*.mat'],'Save new motorModel');
+[filename,pathname] = uiputfile(checkPathSyntax([cd '\*.mat']),'Save new motorModel');
 
 
 prompt = {...

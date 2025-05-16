@@ -47,6 +47,13 @@ if ~isempty(debug)
     nMax    = debug.nMax;
     nPoints = 1;
     tempCu  = debug.tempCu;
+    if isfield(debug,'dispFlag')
+        dispFlag = debug.dispFlag;
+    else
+        dispFlag = 1;
+    end
+else
+    dispFlag = 1;
 end
 
 nVect = logspace(0,log10(nMax),nPoints);
@@ -115,8 +122,10 @@ Pfe_SC = zeros(size(nVect));
 Rs_SC  = zeros(size(nVect));
 Vph_SC = zeros(size(nVect));
 
-disp('Steady-state short-circuit computation...')
-fprintf(' %06.2f%%',0)
+if dispFlag
+    disp('Steady-state short-circuit computation...')
+    fprintf(' %06.2f%%',0)
+end
 
 for ii=1:length(nVect)
     freq = nVect(ii)/60*p;
@@ -193,14 +202,17 @@ for ii=1:length(nVect)
     Pfe_SC(ii) = interp2(real(IdqM),imag(IdqM),Pfe,idOK,iqOK);
     Rs_SC(ii)  = Rs;
     Vph_SC(ii) = interp2(Id,Iq,Vdq,idOK,iqOK);
-
-    fprintf('\b\b\b\b\b\b\b\b')
-    fprintf(' %06.2f%%',ii/length(nVect)*100)
-    % disp([int2str((ii))])
+    
+    if dispFlag
+        fprintf('\b\b\b\b\b\b\b\b')
+        fprintf(' %06.2f%%',ii/length(nVect)*100)
+    end
 end
 
-disp(' ')
-disp('Steady-state short-circuit computed!')
+if dispFlag
+    disp(' ')
+    disp('Steady-state short-circuit computed!')
+end
 
 %output structure
 
@@ -236,7 +248,7 @@ pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
 
 if figFlag
-    resFolder = [motName '_results\MMM results\' 'SteadyStateSC - ' int2str(motorModel.data.tempPM) 'degPM - ' int2str(tempCu) 'degCu' '\'];
+    resFolder = checkPathSyntax([motName '_results\MMM results\' 'SteadyStateSC - ' int2str(motorModel.data.tempPM) 'degPM - ' int2str(tempCu) 'degCu' '\']);
     
     resFolderOut = [pathname resFolder];
     
@@ -346,7 +358,7 @@ if figFlag
     end
 else
     hfig = [];
-    resFolder = [motName '_results\MMM results\' 'SteadyStateSC - ' int2str(motorModel.data.tempPM) 'degPM - ' int2str(tempCu) 'degCu' ' - debug\'];
+    resFolder = checkPathSyntax([motName '_results\MMM results\' 'SteadyStateSC - ' int2str(motorModel.data.tempPM) 'degPM - ' int2str(tempCu) 'degCu' ' - debug\']);
     resFolderOut = [pathname resFolder];
 end
 %% Save figures

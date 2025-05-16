@@ -138,7 +138,7 @@ gammaStr=strrep(gammaStr,'.','d');
 if ~contains(gammaStr,'d')
     gammaStr=[gammaStr 'd'];
 end
-resFolder = [motName '_results\MMM results\' 'TransientSC - ' iStr '_' gammaStr '_' int2str(n) 'rpm' '_' int2str(motorModel.data.tempPM) 'degPM_' int2str(motorModel.data.tempCu) 'degCu' '\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'TransientSC - ' iStr '_' gammaStr '_' int2str(n) 'rpm' '_' int2str(motorModel.data.tempPM) 'degPM_' int2str(motorModel.data.tempCu) 'degCu' '\']);
 
 resFolderOut = [pathname resFolder];
 

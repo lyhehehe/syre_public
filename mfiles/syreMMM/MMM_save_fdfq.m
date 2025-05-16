@@ -17,7 +17,7 @@ function MMM_save_fdfq(motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'dq Flux Maps - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'dq Flux Maps - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder])

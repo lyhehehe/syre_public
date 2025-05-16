@@ -25,6 +25,8 @@ switch library
         libName = 'materialLibrary\custom_iron.mat';
 end
 
+libName = checkPathSyntax(libName);
+
 prompt={'Yield strength [MPa]',...
         'Density [kg*m^-3]',...
         'alpha (iron loss coeff)',...
@@ -38,7 +40,7 @@ defaultanswer={'200','7800','0','0','0','0','200'};
 
 answer=inputdlg(prompt,name,numlines,defaultanswer);
 
-[filename,pathname,~]=uigetfile([cd '\.m'],'Load BH curve');
+[filename,pathname,~]=uigetfile(checkPathSyntax([cd '\.m']),'Load BH curve');
 run([pathname filename]);
 figure
 plot(BH(:,2),BH(:,1));

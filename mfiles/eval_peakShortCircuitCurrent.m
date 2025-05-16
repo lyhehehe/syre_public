@@ -85,12 +85,12 @@ per = rmfield(per,'custom_act');
 
 % create result folder
 if flagSave
-    outFolder = [filename(1:end-4) '_results\FEA results\'];
+    outFolder = checkPathSyntax([filename(1:end-4) '_results\FEA results\']);
     if ~exist([pathname outFolder],'dir')
         mkdir([pathname outFolder]);
     end
 
-    resFolder = ['peakShortCircuitCurrent_' datestr(now,30) '\'];
+    resFolder = checkPathSyntax(['peakShortCircuitCurrent_' datestr(now,30) '\']);
     mkdir([pathname outFolder],resFolder);
     resFolder = [pathname outFolder resFolder];
 

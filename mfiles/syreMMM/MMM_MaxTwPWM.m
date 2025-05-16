@@ -334,7 +334,7 @@ TwMapPWM.Rs    = out.Rs;
 TwMapPWM.eff   = TwMapPWM.P./(TwMapPWM.P+Ploss_PWM);
 
 %% Output
-resFolder = [motorModel.data.motorName '_results\MMM results\' 'TwMapPWM_' datestr(now,30) '\'];
+resFolder = checkPathSyntax([motorModel.data.motorName '_results\MMM results\' 'TwMapPWM_' datestr(now,30) '\']);
 
 kfix.kfe  = kfe;
 kfix.kpm  = kpm;

@@ -22,7 +22,8 @@ if nargin==0
     else
         pathname = cd;
     end
-    [filename,pathname,~]=uigetfile([pathname '\.mat'],'Select a machine');
+    pathname = checkPathSyntax([pathname '\']);
+    [filename,pathname,~]=uigetfile([pathname '.mat'],'Select a machine');
     
     load([pathname filename])
     
@@ -90,11 +91,13 @@ per.delta_sim_singt = dataSet.AngularSpanPP;
 per.tempPP          = tempVect;
 
 outFolder = [filename(1:end-4) '_results\FEA results\'];
+outFolder = checkPathSyntax(outFolder);
 if ~exist([pathname outFolder],'dir')
     mkdir([pathname outFolder]);
 end
 
 resFolder = ['demagCurve - ' datestr(now,30) '\'];
+resFolder = checkPathSyntax(resFolder);
 mkdir([pathname outFolder],resFolder);
 resFolder = [pathname outFolder resFolder];
 
@@ -116,6 +119,7 @@ i0 = per.i0;
 maxIter = 500;
 dPMtarget = 0.01;
 tolPU = 0.5;
+tolPU = 0.25;
 IstepLim = i0/100;
 
 if strcmp(dataSet.axisType,'PM')

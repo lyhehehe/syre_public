@@ -17,7 +17,7 @@ function plot_singt_FFT(filename,pathname)
 
 %close all
 if nargin()<2
-    [filename, pathname, ~] = uigetfile([cd '\.mat'], 'LOAD DATA');
+    [filename, pathname, ~] = uigetfile(checkPathSyntax([cd '\.mat']), 'LOAD DATA');
 end
 
 load([pathname filename]);
@@ -56,7 +56,7 @@ if not(isempty(message))
     disp('Warning : existing folder')
 end
 
-pathfolder=[pathname folder '\'];
+pathfolder=checkPathSyntax([pathname folder '\']);
 
 % torque plot
 [Tcont,Tharm] = plot_figure_FFT_singt(th,abs(t),50,'$\theta_e$ [$^\circ$]','$T$ [Nm]');

@@ -128,9 +128,9 @@ else
 end
 
 %% Figures
-FigDir=[resFolder,'fig - flux maps'];
+FigDir = [resFolder,'fig - flux maps'];
 mkdir(FigDir);
-FigDir = [FigDir '\'];
+FigDir = checkPathSyntax([FigDir '\']);
 
 % flux maps
 figure
@@ -150,7 +150,7 @@ figure
 surfc(Id,Iq,Fd), grid on, xlabel('id'), ylabel('iq'), zlabel('\lambda_d')
 h=gcf(); %OCT
 if isoctave()
-    fig_name=strcat(FigDir, '\Fdsurf.fig');
+    fig_name = checkPathSyntax(strcat(FigDir, '\Fdsurf.fig'));
     hgsave(h,[fig_name]);
     clear fig_name
 else

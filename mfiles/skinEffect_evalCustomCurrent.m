@@ -35,12 +35,12 @@ Imain = I_FFT(ind);
 %% Load AC model
 pathname = dataSet.currentpathname;
 filename = dataSet.currentfilename;
-FEAfolder = [pathname filename(1:(end-4)) '_results\FEA results\'];
+FEAfolder = checkpa([pathname filename(1:(end-4)) '_results\FEA results\']);
 if ~exist(FEAfolder,'dir')
     FEAfolder = pathname;
 end
 
-[filename1,pathname1] = uigetfile([FEAfolder '\*.mat'],'Load Skin Effect Results');
+[filename1,pathname1] = uigetfile([FEAfolder '*.mat'],'Load Skin Effect Results');
 data = load([pathname1 filename1]);
 % 
 % if fkac(1,end)<2*fPWM
@@ -94,7 +94,7 @@ subplot(2,1,2)
 plot(time*1000,Ia)
 xlabel('$t$ [ms]')
 ylabel('$I$ [A]')
-savefig([pathname1, 'CustomCurrent\Custom current.fig']);
+savefig(checkPathSyntax([pathname1, 'CustomCurrent\Custom current.fig']));
 savePrintFigure()
 
 xNames{1} = '$PWM$';
@@ -115,8 +115,8 @@ ylabel('$P_{Cu}$ [W]')
 ax = gca;
 ylim([0 ax.YTick(end)+ax.YTick(2)])
 
-savefig([pathname1, 'CustomCurrent\Copper Loss.fig']);
+savefig(checkPathSyntax([pathname1, 'CustomCurrent\Copper Loss.fig']));
 savePrintFigure()
 
-save([pathname1  'CustomCurrent\CopperLoss_Results.mat'],'Ploss','PlossAC','PlossDC','time');
-disp(['Copper loss results saved in: ' pathname1 'CustomCurrent\'])
+save(checkPathSyntax([pathname1  'CustomCurrent\CopperLoss_Results.mat']),'Ploss','PlossAC','PlossDC','time');
+disp(checkPathSyntax(['Copper loss results saved in: ' pathname1 'CustomCurrent\']))

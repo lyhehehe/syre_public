@@ -15,6 +15,7 @@
 function motorModel = MMM_createSimulinkModel(motorModel)
 
 n_set = motorModel.data.n3phase;
+motorModel.SyreDrive.Simulator = 'Simulink';
 
 %% ------------------------- Compute Motor Maps----------------------------%
 if isempty(motorModel.controlTrajectories)
@@ -59,11 +60,11 @@ else
         case 'Average'
             % copyfile([syrePath '\syreDrive\AVGModel'], ctrlFolder_path);
             % movefile([ctrlFolder_path '\Motor_ctrl_AVG.slx'],[ctrlFolder_path '\' motorModel.data.motorName '_ctrl_AVG.slx']);
-            copyfile([syrePath '\syreDrive\INSTModel'], ctrlFolder_path);
-            movefile([ctrlFolder_path '\Motor_ctrl_INST.slx'],[ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']);
+            copyfile(checkPathSyntax([syrePath '\syreDrive\INSTModel']), ctrlFolder_path);
+            movefile(checkPathSyntax([ctrlFolder_path '\Motor_ctrl_INST.slx']),checkPathSyntax([ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']));
         case 'Istantaneous'
-            copyfile([syrePath '\syreDrive\INSTModel'], ctrlFolder_path);
-            movefile([ctrlFolder_path '\Motor_ctrl_INST.slx'],[ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']);
+            copyfile(checkPathSyntax([syrePath '\syreDrive\INSTModel']), ctrlFolder_path);
+            movefile(checkPathSyntax([ctrlFolder_path '\Motor_ctrl_INST.slx']),checkPathSyntax([ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']));
     end
     
     
@@ -72,12 +73,12 @@ else
     switch(modelType)
         case 'Average'
             % motorModel.SyreDrive.SIM_path = [ctrlFolder_path '\' motorModel.data.motorName '_ctrl_AVG.slx'];
-            motorModel.SyreDrive.SIM_path = [ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx'];
+            motorModel.SyreDrive.SIM_path = checkPathSyntax([ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']);
         case 'Istantaneous'
-            motorModel.SyreDrive.SIM_path = [ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx'];
+            motorModel.SyreDrive.SIM_path = checkPathSyntax([ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']);
     end
     
-    save([ctrlFolder_path '\motorModel.mat'],'motorModel');
+    save(checkPathSyntax([ctrlFolder_path '\motorModel.mat']),'motorModel');
     
     disp('Simulink model created!')
     disp(['pathname:'])

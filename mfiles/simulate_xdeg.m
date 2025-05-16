@@ -30,8 +30,14 @@ th0        = geo.th0;
 p          = geo.p;
 ps         = geo.ps;
 n3phase    = geo.win.n3phase; %AS number of 3-phase circuits
-Nbob       = geo.win.Nbob;
+Nbob       = geo.win.Nbob.*ones(1,n3phase);
+% Nbob       = geo.win.Nbob*[0.5 1 1];
+% warning('Test different Nbob')
 l          = geo.l;
+if strcmp(geo.RotType,'EESM')
+    If = per.if;       % Field current
+    Nf = geo.win.Nf;   % EESM number of turns per pole
+end
 
 if isfield(per,'flag3phaseSet')
     flag3phSet = per.flag3phaseSet;
@@ -195,8 +201,8 @@ else
     iOff = iOffsetPU*iAmp;
 end
 
-iAmpCoil = iAmp*Nbob;
-iOffCoil = iOff*Nbob.*ones(1,n3phase);
+iAmpCoil = iAmp.*Nbob;
+iOffCoil = iOff.*Nbob.*ones(1,n3phase);
 
 
 id = iAmpCoil.*cos(gamma*pi/180).*ones(1,n3phase);
@@ -216,7 +222,7 @@ SOL.id = zeros(1,nsim);         % d-axis current
 SOL.iq = zeros(1,nsim);         % q-axis current
 SOL.fd = zeros(1,nsim);         % d-axis flux linkage
 SOL.fq = zeros(1,nsim);         % q-axis flux linkage
-SOL.T  = zeros(1,nsim);         % Torque from block integral (suggested by David Meeker)
+SOL.T  = zeros(1,nsim);         % Torque
 SOL.ia = zeros(n3phase,nsim);   % phase a current
 SOL.ib = zeros(n3phase,nsim);   % phase b current
 SOL.ic = zeros(n3phase,nsim);   % phase c current
@@ -297,7 +303,10 @@ for jj = 1:nsim
         mi_modifycircprop(phase_name_neg{3*ik+1}, 1,-i_tmp((3*ik)+1,jj));
         mi_modifycircprop(phase_name_neg{3*ik+2}, 1,-i_tmp((3*ik)+2,jj));
         mi_modifycircprop(phase_name_neg{3*ik+3}, 1,-i_tmp((3*ik)+3,jj));
-
+        if strcmp(geo.RotType,'EESM')
+            mi_modifycircprop('field',1,If*Nf);
+            %mi_modifycircprop('fieldn',1,If);
+        end
     end
 
     % assign the Hc property to each of the bonded magnets
@@ -336,6 +345,11 @@ for jj = 1:nsim
         indexPM = 200+(1:1:nPM);
 
         mi_selectgroup(22), mi_selectgroup(2);
+        if strcmp(geo.RotType,'EESM')
+            for ii = 201:1:200+4*p
+                mi_selectgroup(ii);
+            end
+        end
         for kk=1:length(indexPM)
             mi_selectgroup(indexPM(kk));
         end
@@ -425,21 +439,27 @@ for jj = 1:nsim
     mo_clearblock();
 
     SOL.th(jj) = thetaPark(jj);
-    SOL.id(jj) = mean(id)/Nbob; % Divide by Ns (simulation done with one turn per coil)
-    SOL.iq(jj) = mean(iq)/Nbob;
-    SOL.fd(jj) = fd*Nbob; % Times Ns
-    SOL.fq(jj) = fq*Nbob;
+    SOL.id(jj) = mean(mean(id)./Nbob); % Divide by Ns (simulation done with one turn per coil)
+    SOL.iq(jj) = mean(mean(iq)./Nbob);
+    SOL.fd(jj) = mean(fd.*Nbob); % Times Ns
+    SOL.fq(jj) = mean(fq.*Nbob);
     SOL.T(jj)  = T;
     SOL.we(jj) = we;
     SOL.wc(jj) = wc;
 
     for ff=1:n3phase
-        SOL.ia(ff,jj) = i_tmp(1+3*(ff-1),jj)/Nbob;
-        SOL.ib(ff,jj) = i_tmp(2+3*(ff-1),jj)/Nbob;
-        SOL.ic(ff,jj) = i_tmp(3+3*(ff-1),jj)/Nbob;
-        SOL.fa(ff,jj) = f(1+3*(ff-1))*Nbob;
-        SOL.fb(ff,jj) = f(2+3*(ff-1))*Nbob;
-        SOL.fc(ff,jj) = f(3+3*(ff-1))*Nbob;
+        SOL.ia(ff,jj) = i_tmp(1+3*(ff-1),jj)/Nbob(ff);
+        SOL.ib(ff,jj) = i_tmp(2+3*(ff-1),jj)/Nbob(ff);
+        SOL.ic(ff,jj) = i_tmp(3+3*(ff-1),jj)/Nbob(ff);
+        SOL.fa(ff,jj) = f(1+3*(ff-1))*Nbob(ff);
+        SOL.fb(ff,jj) = f(2+3*(ff-1))*Nbob(ff);
+        SOL.fc(ff,jj) = f(3+3*(ff-1))*Nbob(ff);
+    end
+
+    if strcmp(geo.RotType,'EESM')
+        SOL.if(jj) = If;
+        temp_out = temp_out - mo_getcircuitproperties('field');
+        SOL.ff(jj) = temp_out(3) * 2 * p/ps*Nf; %ps number of poles in FEMM
     end
 
     switch eval_type

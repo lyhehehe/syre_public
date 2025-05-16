@@ -19,7 +19,7 @@ if nargin()==1
     filename = 'Map not saved';
 else
     if nargin()~=2
-        [filename,pathname,~] = uigetfile([cd '\*.fig'],'Select xb design plane');
+        [filename,pathname,~] = uigetfile(checkPathSyntax([cd '\*.fig']),'Select xb design plane');
     end
 
     filename = erase(filename,'.fig');

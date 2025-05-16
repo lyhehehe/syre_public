@@ -3,13 +3,13 @@ function Generate_MultiThreePhase_Simulink(motorModel,n_set)
     ctrlFolder_name = [motorModel.data.motorName '_ctrl_INST'];
     syrePath = fileparts(which('GUI_Syre.mlapp'));
 
-    ctrlFolder_path = [motorModel.data.pathname ctrlFolder_name];
+    ctrlFolder_path = checkPathSyntax([motorModel.data.pathname ctrlFolder_name]);
 
-    copyfile([syrePath '\syreDrive\MultiThreePhase'], ctrlFolder_path);
+    copyfile(checkPathSyntax([syrePath '\syreDrive\MultiThreePhase']), ctrlFolder_path);
 
     motorModel.data.T_VSD = ComputeVSD(n_set);
     
-    save([ctrlFolder_path '\motorModel.mat'],'motorModel');
+    save(checkPathSyntax([ctrlFolder_path '\motorModel.mat']),'motorModel');
 
     MMM_print_MotorDataH(motorModel);
 
@@ -20,7 +20,7 @@ function Generate_MultiThreePhase_Simulink(motorModel,n_set)
    
     
     motorName = motorModel.data.motorName;
-    Simulink_path = [ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx'];
+    Simulink_path = checkPathSyntax([ctrlFolder_path '\' motorModel.data.motorName '_ctrl_INST.slx']);
     Simulink_Name = [motorModel.data.motorName '_ctrl_INST'];
     new_model(Simulink_Name);
     
@@ -35,7 +35,7 @@ function Generate_MultiThreePhase_Simulink(motorModel,n_set)
 
     path = getComponentsPaths();
     SimulinkRefBlocks = 'RefBlocks';
-    open([syrePath '\syreDrive\MultiThreePhase\RefBlocks.slx']);
+    open(checkPathSyntax([syrePath '\syreDrive\MultiThreePhase\RefBlocks.slx']));
     
     
     print_control_script(ctrlFolder_path,n_set,Quad_Maps);
@@ -43,7 +43,7 @@ function Generate_MultiThreePhase_Simulink(motorModel,n_set)
     add_inverters(Simulink_Name,SimulinkRefBlocks,n_set);
     create_circuital_model(Simulink_Name,path,SimulinkRefBlocks,n_set);
 
-    close_system([syrePath '\syreDrive\MultiThreePhase\RefBlocks.slx']);
+    close_system(checkPathSyntax([syrePath '\syreDrive\MultiThreePhase\RefBlocks.slx']));
     %--------------------------Set Solver Configuration-------------------%
     cs = getActiveConfigSet(Simulink_Name);
     cs.set_param('StartTime', '0.0');   % Start time
@@ -59,7 +59,7 @@ function Generate_MultiThreePhase_Simulink(motorModel,n_set)
 
     save_system(Simulink_path);
     close_system(Simulink_Name);
-    delete([ctrlFolder_path  '\RefBlocks.slx']);
+    delete(checkPathSyntax([ctrlFolder_path  '\RefBlocks.slx']));
 
     clc
     disp('Simulink model created!');

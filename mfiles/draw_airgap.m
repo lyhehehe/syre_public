@@ -27,9 +27,12 @@ groupGap = 20;
 if ps<2*p % not full motor simulated
     % stator
     xArcStat1 = r+2/3*g;
+    % xArcStat1 = r+6/10*g;
     yArcStat1 = 0;
     xArcStat2 = (r+2/3*g)*cos(pi/p*ps);
     yArcStat2 = (r+2/3*g)*sin(pi/p*ps);
+    % xArcStat2 = (r+6/10*g)*cos(pi/p*ps);
+    % yArcStat2 = (r+6/10*g)*sin(pi/p*ps);
     
     mi_drawarc(xArcStat1,yArcStat1,xArcStat2,yArcStat2,360*ps/(2*p),res_traf);
     mi_selectarcsegment(xArcStat1,yArcStat1);
@@ -66,9 +69,12 @@ if ps<2*p % not full motor simulated
 
     % rotor
     xArcRot1 = r+1/3*g;
+    % xArcRot1 = r+4/10*g;
     yArcRot1 = 0;
     xArcRot2 = (r+1/3*g)*cos(pi/p*ps);
     yArcRot2 = (r+1/3*g)*sin(pi/p*ps);
+    % xArcRot2 = (r+4/10*g)*cos(pi/p*ps);
+    % yArcRot2 = (r+4/10*g)*sin(pi/p*ps);
 %     if strcmp(RotType,'SPM')
 %         xTrafRot1 = r;
 %         yTrafRot1 = 0;

@@ -161,7 +161,8 @@ for n=1:generations
     %            save ('-mat-binary', file_name2);
     %            clear file_name2 current_dir
     %        else
-    save(['partial_optimization\generation_' int2str(n)]);
+    
+    save(checkPathSyntax(['partial_optimization\generation_' int2str(n)]));
     %        end
 
     if functionEvaluations>options.MAXFUNEVALS || n>options.MAXGEN
@@ -187,11 +188,11 @@ for n=1:generations
     else
         if strcmp(dataSet.RMVTmp,'ON')
             disp('Deleting tmp files...')
-            if exist([cd,'\tmp'],'dir')
-                [status,msg] = rmdir([cd,'\tmp'],'s');
+            if exist(checkPathSyntax([cd,'\tmp']),'dir')
+                [status,msg] = rmdir(checkPathSyntax([cd,'\tmp']),'s');
             end
             if exist([cd,'\tmp'],'dir') == 0
-                [status,msg] = mkdir([cd,'\tmp']);
+                [status,msg] = mkdir(checkPathSyntax([cd,'\tmp']));
             end
             disp('tmp files deleted')
         end

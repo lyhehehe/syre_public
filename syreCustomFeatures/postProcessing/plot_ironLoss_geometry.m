@@ -25,16 +25,24 @@ hax(1) = axes('OuterPosition',[0 0 1 1]);
 axis equal
 colormap turbo
 title('Iron loss (W)')
-set(hfig(1),'FileName',[pathname figName '.fig'])
+set(hfig(1),'FileName',[pathname figName '_Fe.fig'])
 
 hfig(2) = figure();
 figSetting();
 hax(2) = axes('OuterPosition',[0 0 1 1]);
 axis equal
 colormap turbo
+title('PM loss (W)')
+set(hfig(2),'FileName',[pathname figName '_PM.fig'])
+
+hfig(3) = figure();
+figSetting();
+hax(3) = axes('OuterPosition',[0 0 1 1]);
+axis equal
+colormap turbo
 zLim = max(abs(out.SOL.bs+out.SOL.br),[],'all');
 set(gca,'CLim',[0 zLim]);
-set(hfig(2),'FileName',[pathname gifName '.fig'])
+set(hfig(3),'FileName',[pathname gifName '.fig'])
 
 
 for ii=1:length(hfig)
@@ -46,12 +54,15 @@ for ii=1:length(hfig)
 end
 
 scatter(hax(1),real(SOL.pos),imag(SOL.pos),10,(SOL.psh+SOL.psc+SOL.prc+SOL.prh),'filled')
-hgif = scatter(hax(2),real(SOL.pos),imag(SOL.pos),10,abs(SOL.bs(1,:)+SOL.br(1,:)),'filled');
+scatter(hax(2),real(SOL.pos),imag(SOL.pos),10,max(SOL.ppm),'filled')
+hgif = scatter(hax(3),real(SOL.pos),imag(SOL.pos),10,abs(SOL.bs(1,:)+SOL.br(1,:)),'filled');
 
 colorbar(hax(1));
 colorbar(hax(2));
+colorbar(hax(2));
 
 savePrintFigure(hfig(1));
+savePrintFigure(hfig(2));
 
 v = VideoWriter([pathname gifName '.avi']);
 v.Quality = 95;
@@ -62,7 +73,7 @@ for ii=1:length(SOL.th)
     title(['$\theta = ' int2str(SOL.th(ii)-SOL.th(1)) '^\circ$'])
     drawnow
     
-    frame = getframe(hfig(2));
+    frame = getframe(hfig(3));
     im = frame2im(frame);
     [imind,cm] = rgb2ind(im,256);
     if ii==1

@@ -14,7 +14,7 @@
 
 function [mat] = material_properties_conductor(MatName)
 
-load('materialLibrary\conductor_material.mat')
+load(checkPathSyntax('materialLibrary\conductor_material.mat'))
 
 ind=0;
 
@@ -29,7 +29,7 @@ matListBase = MatList;
 if ind~=0
     mat=MatLib{ind};
 else
-    load('materialLibrary\custom_conductor.mat')
+    load(checkPathSyntax('materialLibrary\custom_conductor.mat'))
     ind=0;
     for ii=1:length(MatList)
         if strcmp(MatList{ii},MatName)

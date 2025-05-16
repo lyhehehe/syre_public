@@ -18,34 +18,87 @@ fPWM = motorModel.SyreDrive.Converter.fPWM;
 p    = motorModel.geo.p;
 
 % cd([motorModel.data.pathname motorModel.data.motorName '_ctrl_INST'])
-
-open(motorModel.SyreDrive.SIM_path)
-init_sim
+switch(motorModel.SyreDrive.Simulator)
+    case 'Simulink'
+        init_sim
+    case 'Plecs'
+        init_sim_PLECS
+end     
 
 n = syreDriveSingt.n;  
 
-id_MTPA = syreDriveSingt.Id;
-iq_MTPA = syreDriveSingt.Iq;
+% id_MTPA = syreDriveSingt.Id;
+% iq_MTPA = syreDriveSingt.Iq;
+% T0      = syreDriveSingt.T;
+% n0      = 2*n;   
+
+idRef = syreDriveSingt.Id;
+iqRef = syreDriveSingt.Iq;
 T0      = syreDriveSingt.T;
-n0      = 2*n;   
+nRef    = syreDriveSingt.n;   
 tSim    = syreDriveSingt.tSim;
 
 flagwp = 1;
 
-options = simset('SrcWorkspace','current', 'DstWorkspace', 'current');
-out = sim(motorModel.SyreDrive.SIM_path,tSim,options);   % Starts simulation
+% Launch Simulation
+
+switch(motorModel.SyreDrive.Simulator)
+    case 'Simulink'
+        open(motorModel.SyreDrive.SIM_path)
+        options = simset('SrcWorkspace','current', 'DstWorkspace', 'current');
+        out = sim(motorModel.SyreDrive.SIM_path,tSim,options);   % Starts simulation
+    case 'Plecs'
+        addpath('matlab-jsonrpc-main\');
+        URL = 'http://localhost:1080';
+        proxy = jsonrpc(URL,'Timeout', 100);
+        
+        fileName = [motorModel.data.motorName '_Motor_ctrl'];
+
+        % Solver option
+        optStruct.SolverOpts.StartTime = 0.000;
+        optStruct.SolverOpts.TimeSpan  = tSim;
+        
+        optStruct.ModelVars.idRef = idRef;
+        optStruct.ModelVars.iqRef = iqRef;
+        optStruct.ModelVars.nRef  = nRef;
+        optStruct.ModelVars.T0      = T0;
+        
+        % Launch simulation 
+        out = proxy.plecs.simulate(fileName,optStruct);
+
+end
+
+
 
 % without movemean and percentage gap computed as
 % delta% = (|a-b|/(a+b)/2)*100
 
-Time_dq = out.Out_M.Idq_m.Time;
-Id = out.Out_M.Idq_m.Data(:,1);
-Iq = out.Out_M.Idq_m.Data(:,2);
-T_m = out.Out_M.T_m.Data;
-% Id_ref = out.Outputs.id_ref.Data(:);
-% Iq_ref = out.Outputs.iq_ref.Data(:);
+% Elaborate Results
 
-t = 60/(out.Out_M.n_m.Data(length(out.Out_M.n_m.Data(:)))*motorModel.data.p);
+switch(motorModel.SyreDrive.Simulator)
+    case 'Simulink'
+        Time_dq = out.Out_M.Idq_m.Time;
+        Id = out.Out_M.Idq_m.Data(:,1);
+        Iq = out.Out_M.Idq_m.Data(:,2);
+        T_m = out.Out_M.T_m.Data;
+        % Id_ref = out.Outputs.id_ref.Data(:);
+        % Iq_ref = out.Outputs.iq_ref.Data(:);
+        
+        t = 60/(out.Out_M.n_m.Data(length(out.Out_M.n_m.Data(:)))*motorModel.data.p);
+
+    case 'Plecs'
+        Time_dq = out.Time;
+        Id = out.Values(6,:);
+        Iq = out.Values(7,:);
+        T_m = out.Values(10,:);
+
+        % when exporting the results from PLECS to Matlab, the speed array
+        % is in position 12
+        t = 60/(out.Values(12,length(out.Values(12,:)))*motorModel.data.p); 
+        
+
+end
+
 
 %% Method 1
 % ind_st = find(Id_ref == Id_ref(length(Id_ref)),1);
@@ -104,7 +157,7 @@ iabc2 = dq2abc(Id2,Iq2,th_vect);
 
 time = linspace(0,60/n/p,length(iabc2(1,:)));
 
-iabc2 = [iabc2; time];
+iabc2 = [iabc2; time;];
 
 figure
 figSetting(14,10,12)

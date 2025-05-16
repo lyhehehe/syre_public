@@ -21,7 +21,8 @@ function [DemagOut]=demagnetizationCurrentTemperature(dataSet)
 clc
 if nargin<1
     
-    [filename,pathname,~]=uigetfile([cd '\.mat'],'Select a PM machine');
+    % [filename,pathname,~]=uigetfile([cd '\.mat'],'Select a PM machine');
+    [filename,pathname,~]=uigetfile({'.mat'},'Select a PM machine',cd);
     load([pathname filename]);
     
     prompt={'Maximum current [A]',...
@@ -59,6 +60,7 @@ ntemp    = length(TempVect);
 ncur     = dataSet.NumGrid;
 
 resFolder=[filename(1:end-4) '_Demag_' int2str(Imax) 'A\'];
+resFolder = checkPathSyntax(resFolder);
 if ~isfolder([pathname resFolder])
     mkdir(pathname,resFolder);
 end
@@ -174,7 +176,9 @@ saveas(gcf,[pathname resFolder 'DemagCurves.fig']);
 
 
 if sum(sum(sum(dPMout)))>0
-    mkdir([pathname resFolder 'critical machines\'])
+    pathOutNew = [pathname resFolder 'critical machines\'];
+    pathOutNew = checkPathSyntax(pathOutNew);
+    mkdir(pathOutNew)
 end
 
 for ii=1:size(dPMout,1)
@@ -187,7 +191,7 @@ for ii=1:size(dPMout,1)
             setup.pInd=pp;
             if dPMout(ii,tt,pp)>0
                 plotDemagResults(setup);
-                saveas(gcf,[pathname resFolder 'critical machines\curr' int2str(ii) '_temp' int2str(tt) '_pos' int2str(pp) '.fig']);
+                saveas(gcf,[pathOutNew 'curr' int2str(ii) '_temp' int2str(tt) '_pos' int2str(pp) '.fig']);
             end
         end
     end

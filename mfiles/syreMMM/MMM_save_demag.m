@@ -16,7 +16,7 @@ function MMM_save_demag(motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Demagnetization Limit\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Demagnetization Limit\']);
 
 
 if ~exist([pathname resFolder],'dir')

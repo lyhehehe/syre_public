@@ -1,6 +1,6 @@
 function ComputeDecouplingMatrix(motorModel,n_set)
 
-UserMacrosH_path = [motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\User_Macros.h'];
+UserMacrosH_path = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\User_Macros.h']);
 
 
 n = n_set;  % number of sets
@@ -11,11 +11,11 @@ TD(1,:) = 1;
 
 x=1;
 row = 2;
-for k=1:(n-1)    
-    
+for k=1:(n-1)
+
     wk = sqrt((n*n-n*k)/(n-k+1));
     qk = -sqrt(n/((n-k)*(n-k+1)));
-    
+
     TD(row,x) = wk;
     TD(row,x+1:end) = qk;
     x=x+1;
@@ -54,13 +54,13 @@ User_Macros = [ User_Macros; strings(1,1)];
 tmp_s = sprintf('#define _Decoupling(');
 
 for i=1:n
-tmp_s = [tmp_s sprintf('dq%d,',i)];
+    tmp_s = [tmp_s sprintf('dq%d,',i)];
 end
 
 tmp_s = [tmp_s sprintf('dq_cm')];
 
 for i=1:(n-1)
-tmp_s = [tmp_s sprintf(',dq_dm%d',i)];
+    tmp_s = [tmp_s sprintf(',dq_dm%d',i)];
 end
 
 User_Macros = [User_Macros; sprintf("%s); \\",tmp_s)];
@@ -82,7 +82,7 @@ User_Macros = [User_Macros; sprintf(blanks(4)+"%s; \\",tmp_q)];
 % Differential mode subspace
 
 for i=1:(n-1)
-        
+
     tmp_d = sprintf('dq_dm%d.d =',i);
     tmp_q = sprintf('dq_dm%d.q =',i);
 
@@ -122,14 +122,14 @@ for i=1:n
     tmp_d = sprintf('dq%d.d=(%.4f)*dq_cm.d',i,inv_TD(i,1));
     tmp_q = sprintf('dq%d.q=(%.4f)*dq_cm.q',i,inv_TD(i,1));
     for j=1:(n-1)
-        tmp_d = [tmp_d sprintf('+(%.4f)*dq_dm%d.d',inv_TD(i,j+1),j)]; 
+        tmp_d = [tmp_d sprintf('+(%.4f)*dq_dm%d.d',inv_TD(i,j+1),j)];
         tmp_q = [tmp_q sprintf('+(%.4f)*dq_dm%d.q',inv_TD(i,j+1),j)];
     end
     User_Macros = [User_Macros; sprintf(blanks(4)+"%s; \\",tmp_d)];
     User_Macros = [User_Macros; sprintf(blanks(4)+"%s; \\",tmp_q)];
 
 
-end    
+end
 
 fid = fopen(UserMacrosH_path, 'w');
 for i = 1:numel(User_Macros)

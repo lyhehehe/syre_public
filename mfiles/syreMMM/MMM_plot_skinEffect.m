@@ -19,7 +19,7 @@ skinEffect = motorModel.acLossFactor;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Skin Effect Model\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Skin Effect Model\']);
 
 f = skinEffect.f;
 k = skinEffect.k;

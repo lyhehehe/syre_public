@@ -61,6 +61,16 @@ else
     ich=0;
 end
 
+if strcmp(motorType,'SR')||strcmp(motorType,'IM')
+    fm = 0;
+else
+    if strcmp(axisType,'PM')
+        fm = interp2(Id,Iq,Fd,0,0);
+    else
+        fm = -interp2(Id,Iq,Fq,0,0);
+    end
+end
+
 % a = (Fd.^2+Fq.^2);
 % b = 2*Rs*(Fd.*Iq-Fq.*Id);
 % c = Rs^2*(Id.^2+Iq.^2)-Vmax^2;
@@ -77,8 +87,8 @@ wLim(isnan(wLim))=max(wLim,[],'all')*1.1;
 % C --> characteristic current
 % M --> max speed point
 
-id_A = interp1(abs(MTPA.id+j*MTPA.iq),MTPA.id,Imax);
-iq_A = interp1(abs(MTPA.id+j*MTPA.iq),MTPA.iq,Imax);
+id_A = interp1(abs(MTPA.id+j*MTPA.iq),MTPA.id,Imax,'linear','extrap');
+iq_A = interp1(abs(MTPA.id+j*MTPA.iq),MTPA.iq,Imax,'linear','extrap');
 
 if ich>Imax
     if strcmp(axisType,'SR')
@@ -92,8 +102,8 @@ if ich>Imax
     id_C = [];
     iq_C = [];
 else
-    id_B = interp1(abs(MTPV.id+j*MTPV.iq),MTPV.id,Imax);
-    iq_B = interp1(abs(MTPV.id+j*MTPV.iq),MTPV.iq,Imax);
+    id_B = interp1(abs(MTPV.id+j*MTPV.iq),MTPV.id,Imax,'linear','extrap');
+    iq_B = interp1(abs(MTPV.id+j*MTPV.iq),MTPV.iq,Imax,'linear','extrap');
     if strcmp(axisType,'SR')
         id_C = 0;
         iq_C = ich;
@@ -296,6 +306,8 @@ PF  = cos(atan2(vq,vd)-atan2(iq,id));
 
 P = T.*wr;
 
+nUGO = n_A*F_A/abs(fm);
+
 % save Plim points
 Plim.wr  = wr;
 Plim.n   = n;
@@ -337,5 +349,7 @@ Plim.id_M = id_M;
 Plim.iq_M = iq_M;
 Plim.T_M  = T_M;
 Plim.n_M  = n_M;
+
+Plim.n_UGO = nUGO;
 
 

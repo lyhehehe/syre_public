@@ -19,9 +19,9 @@ F_IM = F_map.IM;
 F_bar = F_map.bar;
 
 % aggiunta induttanza di testata statore
-F_map.Fd = F_map.Fd+per.Lend*F_map.Id;
-F_map.Fq = F_map.Fq+per.Lend*F_map.Iq;
-F_map.T  = 3/2*geo.p*(F_map.Fd.*F_map.Iq-F_map.Fq.*F_map.Id);
+% F_map.Fd = F_map.Fd+per.Lend*F_map.Id;
+% F_map.Fq = F_map.Fq+per.Lend*F_map.Iq;
+% F_map.T  = 3/2*geo.p*(F_map.Fd.*F_map.Iq-F_map.Fq.*F_map.Id);
 
 % filtro kr=0
 F_IM.kr(F_IM.kr==0) = NaN;

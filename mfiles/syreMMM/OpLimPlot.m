@@ -17,7 +17,7 @@ function [hfig,pathnameOut] = OpLimPlot(Plim,Ivect,motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'OpLim_' datestr(now,30) '\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'OpLim_' datestr(now,30) '\']);
 pathnameOut = [pathname resFolder];
 
 nmax = motorModel.data.nmax;
@@ -32,7 +32,7 @@ T  = motorModel.FluxMap_dq.T;
 
 MTPA  = motorModel.controlTrajectories.MTPA;
 MTPV  = motorModel.controlTrajectories.MTPV;
-MPFPA = motorModel.controlTrajectories.MPFPA;
+% MPFPA = motorModel.controlTrajectories.MPFPA;
 
 
 % create figures

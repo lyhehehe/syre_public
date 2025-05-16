@@ -300,6 +300,10 @@ if isfield(motorModel,'dataSet')
     end
 end
 
+if isfield(motorModel.FluxMap_dq,'IM')
+    warning('Scaling not supported for IM equivalent circuit parameters')
+end
+
 % 5) delete or recompute other models
 motorModel.acLossFactor = [];
 

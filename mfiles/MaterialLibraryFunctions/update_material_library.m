@@ -18,7 +18,7 @@ function update_material_library(pathname,filename)
 % 
 
 if nargin<2
-    [filename,pathname,~]=uigetfile([cd '\.mat'],'Select a motor model');
+    [filename,pathname,~]=uigetfile(checkPathSyntax([cd '\.mat']),'Select a motor model');
 end
 
 flagMod=zeros(1,5);
@@ -46,13 +46,13 @@ if ~isfield(matTmp,'kgm3')
     end
     
     %load('materialLibrary\iron_material.mat');
-    load('materialLibrary\custom_iron.mat');
+    load(checkPathSyntax('materialLibrary\custom_iron.mat'));
     ind=length(MatList);
     ind=ind+1;
     MatList{ind}=mat.MatName;
     MatLib{ind}=mat;
     
-    save('materialLibrary\custom_iron.mat','MatList','MatLib');
+    save(checkPathSyntax('materialLibrary\custom_iron.mat'),'MatList','MatLib');
     flagMod(2)=1;
     clear mat
 end
@@ -74,13 +74,13 @@ if ~isfield(matTmp,'kgm3')
         mat.E     = [];
     end
     
-    load('materialLibrary\custom_iron.mat');
+    load(checkPathSyntax('materialLibrary\custom_iron.mat'));
     ind=length(MatList);
     ind=ind+1;
     MatList{ind}=mat.MatName;
     MatLib{ind}=mat;
     
-    save('materialLibrary\custom_iron.mat','MatList','MatLib');
+    save(checkPathSyntax('materialLibrary\custom_iron.mat'),'MatList','MatLib');
     flagMod(1)=1;
     clear mat
 end
@@ -97,13 +97,13 @@ if (~isfield(matTmp,'kgm3')&&~strcmp(mot.dataSet.ShaftMaterial,'Air'))
     mat.ke        = mot.mat.Shaft.ke;
     mat.BH        = mot.mat.Shaft.BH;
     
-    load('materialLibrary\custom_iron.mat');
+    load(checkPathSyntax('materialLibrary\custom_iron.mat'));
     ind=length(MatList);
     ind=ind+1;
     MatList{ind}=mat.MatName;
     MatLib{ind}=mat;
     
-    save('materialLibrary\custom_iron.mat','MatList','MatLib');
+    save(checkPathSyntax('materialLibrary\custom_iron.mat'),'MatList','MatLib');
     flagMod(3)=1;
     clear mat
 end
@@ -122,13 +122,13 @@ if ~isfield(matTmp,'kgm3')
     end
     mat.Hc      = mot.mat.LayerMag.Hc;
     
-    load('materialLibrary\custom_layer.mat');
+    load(checkPathSyntax('materialLibrary\custom_layer.mat'));
     ind=length(MatList);
     ind=ind+1;
     MatList{ind}=mat.MatName;
     MatLib{ind}=mat;
     
-    save('materialLibrary\custom_layer.mat','MatList','MatLib');
+    save(checkPathSyntax('materialLibrary\custom_layer.mat'),'MatList','MatLib');
     flagMod(4)=1;
     clear mat
 end
@@ -141,13 +141,13 @@ if ~isfield(matTmp,'kgm3')
     mat.kgm3    = mot.mat.SlotCond.kgm3;
     mat.alpha   = mot.mat.SlotCond.alpha;
     
-    load('materialLibrary\custom_conductor.mat');
+    load(checkPathSyntax('materialLibrary\custom_conductor.mat'));
     ind=length(MatList);
     ind=ind+1;
     MatList{ind}=mat.MatName;
     MatLib{ind}=mat;
     
-    save('materialLibrary\custom_conductor.mat','MatList','MatLib');
+    save(checkPathSyntax('materialLibrary\custom_conductor.mat'),'MatList','MatLib');
     flagMod(5)=1;
     clear mat
 end
@@ -161,13 +161,13 @@ if isfield(mot.dataSet,'BarMaterial')
         mat.kgm3    = mot.mat.BarCond.kgm3;
         mat.alpha   = mot.mat.BarCond.alpha;
 
-        load('materialLibrary\custom_conductor.mat');
+        load(checkPathSyntax('materialLibrary\custom_conductor.mat'));
         ind=length(MatList);
         ind=ind+1;
         MatList{ind}=mat.MatName;
         MatLib{ind}=mat;
 
-        save('materialLibrary\custom_conductor.mat','MatList','MatLib');
+        save(checkPathSyntax('materialLibrary\custom_conductor.mat'),'MatList','MatLib');
         flagMod(5)=1;
         clear mat
     end
@@ -182,13 +182,13 @@ if isfield(mot.dataSet,'SleeveMaterial')
         mat.kgm3      = mot.mat.Sleeve.kgm3;
         mat.E         = mot.mat.Sleeve.E;
 
-        load('materialLibrary\custom_sleeve.mat');
+        load(checkPathSyntax('materialLibrary\custom_sleeve.mat'));
         ind=length(MatList);
         ind=ind+1;
         MatList{ind}=mat.MatName;
         MatLib{ind}=mat;
 
-        save('materialLibrary\custom_sleeve.mat','MatList','MatLib');
+        save(checkPathSyntax('materialLibrary\custom_sleeve.mat'),'MatList','MatLib');
         flagMod(5)=1;
         clear mat
     end

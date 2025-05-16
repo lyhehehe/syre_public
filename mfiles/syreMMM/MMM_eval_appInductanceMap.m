@@ -23,6 +23,7 @@ Fd = motorModel.FluxMap_dq.Fd;
 Fq = motorModel.FluxMap_dq.Fq;
 
 axisType = motorModel.data.axisType;
+p        = motorModel.data.p;
 
 switch axisType
     case 'PM'
@@ -41,4 +42,8 @@ Inductance.Iq = Iq;
 Inductance.Ld = Ld;
 Inductance.Lq = Lq;
 Inductance.Fm = Fm;
+
+Inductance.Tm = 3/2*p*Fm.*Iq;
+Inductance.Tr = 3/2*p*(Ld-Lq).*Id.*Iq;
+
 end

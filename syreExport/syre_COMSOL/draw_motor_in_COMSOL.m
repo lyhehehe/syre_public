@@ -35,10 +35,21 @@ end
 %Caricamento dei file
 load([pathIn nameIn(1:end-4),'.mat']);
 
+comsol_stator = [geo.stator
+                geo.r+geo.g/2 0 geo.r+geo.g 0 NaN NaN 0 2 max(geo.stator(:,end)+1);
+                0 0 geo.r+geo.g/2 0 (geo.r+geo.g/2)*cos(pi/geo.p*geo.ps) (geo.r+geo.g/2)*sin(pi/geo.p*geo.ps) 1 2 max(geo.stator(:,end)+1);
+                (geo.r+geo.g/2)*cos(pi/geo.p*geo.ps) (geo.r+geo.g/2)*sin(pi/geo.p*geo.ps) (geo.r+geo.g)*cos(pi/geo.p*geo.ps) (geo.r+geo.g)*sin(pi/geo.p*geo.ps) NaN NaN 0 2 max(geo.stator(:,end)+1)];
+comsol_rotor = [geo.rotor
+                geo.r 0 geo.r+geo.g/2 0 NaN NaN 0 1 max(geo.rotor(:,end)+1);
+                0 0 geo.r+geo.g/2 0 (geo.r+geo.g/2)*cos(pi/geo.p*geo.ps) (geo.r+geo.g/2)*sin(pi/geo.p*geo.ps) 1 1 max(geo.rotor(:,end)+1);
+                geo.r*cos(pi/geo.p*geo.ps) geo.r*sin(pi/geo.p*geo.ps) (geo.r+geo.g/2)*cos(pi/geo.p*geo.ps) (geo.r+geo.g/2)*sin(pi/geo.p*geo.ps) NaN NaN 0 1 max(geo.rotor(:,end)+1)];
+Comsol_dir = strcat(pathIn,strrep(nameIn,'.mph','_Comsol\'));
+syreToDxf(comsol_stator,NaN,Comsol_dir,strcat(file_name,'_stat.dxf'));
+syreToDxf(NaN,comsol_rotor,Comsol_dir,strcat(file_name,'_rot.dxf'));
+
 % Caricamento dei file DXF
-dxf_dir = 'C:\Users\S296193\Desktop\syre_developers_20240610\motorExamples\syreDefaultMotor_dxf\';
-rot_dxf = fullfile(dxf_dir, [file_name, '_rot.dxf']);
-stat_dxf = fullfile(dxf_dir, [file_name, '_stat.dxf']);
+rot_dxf = fullfile(Comsol_dir, [file_name, '_rot.dxf']);
+stat_dxf = fullfile(Comsol_dir, [file_name, '_stat.dxf']);
 
 % ============== Import e Costruzione della Geometria ============== %
 
@@ -54,7 +65,7 @@ model.component('comp1').geom('geom1').run('fin');
 model.component('comp1').geom('geom1').lengthUnit('mm');
 
 % Implementazione lunghezza assiale
-model.component('comp1').physics('rmm').prop('d').set('d', 'l [mm]');
+model.component('comp1').physics('rmm').prop('d').set('d', 'l');
 
 % Implementazione Air Gap
 %rotore
@@ -701,12 +712,15 @@ model.component('comp1').common('rot1').set('angularVelocity', w);
 % ============== Definizione Circuito ============== %
 
 % Calcolo correnti dq
-iAmp = per.overload*per.i0;         % ampiezza corrente (tiene conto di eventuale sovraccarico)
+%iAmp = per.overload*per.i0;         % ampiezza corrente (tiene conto di
+%eventuale sovraccarico) SBAGLIATO I0 é NOMINALE
 gamma = dataSet.GammaPP;                         % angolo del vettore I rispetto all'asse d [deg]
 theta_i = (geo.th0 + gamma)*pi/180;             % Angolo corrente [rad]
 
-id = iAmp*cos(theta_i);       
-iq = iAmp*sin(theta_i);       
+id = dataSet.RatedCurrent*dataSet.CurrLoPP*cos(theta_i)/9;
+iq = dataSet.RatedCurrent*dataSet.CurrLoPP*sin(theta_i)/9;
+% id = iAmp*cos(theta_i);       
+% iq = iAmp*sin(theta_i);       
 Imod = abs(id + 1i*iq);            % Modulo corrente [A]
 Iarg = angle(Imod(end));           % Angolo corrente [rad]
 
@@ -753,4 +767,4 @@ geo.BC_fe_r = BC_fe_r;
 geo.BC_pm = BC_pm;
 geo.Bar = Bar;
 
-mphsave(model, [pathIn nameIn(1:end-4), '.mph']);
+mphsave(model, [Comsol_dir nameIn(1:end-4), '.mph']);

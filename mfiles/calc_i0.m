@@ -60,7 +60,7 @@ elseif ~isnan(J)
     kj = (J*1e6).^2.*p*q.*Aslot.*kcu.*rocu.*3./(pi*R).*(l+lend)./l.*n3ph;
     loss = kj.*(2*pi*R*l);
 elseif ~isnan(i0)
-    Rs   = 12*rocu*(l+lend)./(kcu*Aslots)*Ns^2;
+    Rs   = 12*rocu*(l+lend)./(kcu*Aslots)*Ns^2*n3ph;
     loss = n3ph*3/2*Rs*i0^2;
     kj   = loss./(2*pi*R*l);
     J    = ((kj.*pi*R/3.*l./(l+lend)./n3ph./(p*q*Aslot*kcu)./rocu).^0.5)/1e6;

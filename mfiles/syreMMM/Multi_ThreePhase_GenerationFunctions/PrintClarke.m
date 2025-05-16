@@ -1,7 +1,7 @@
 function PrintClarke(motorModel,n_set)
 
 
-UserMacrosH_path = [motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\User_Macros.h'];
+UserMacrosH_path = checkPathSyntax([motorModel.data.pathname motorModel.data.motorName '_ctrl_INST\User_functions\Inc\User_Macros.h']);
 
 
 l = n_set;

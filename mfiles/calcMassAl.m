@@ -29,6 +29,24 @@ if strcmp(geo.RotType,'IM')
     Nbars = geo.IM.Nbars;
     ws    = 2*pi*(r-lt/2)/Nbars-wt;
     Mass = rho*(lt-ttd)/1000*ws/1000*l/1000*Nbars;
+elseif strcmp(geo.RotType, 'EESM')
+    rotor = geo.rotor;
+    p = geo.p;
+    l = geo.l;
+    pos = 1;
+    for ii = 1:length(rotor)
+        if rotor(ii,9) == 2
+            xR(pos) = rotor(ii,1);
+            yR(pos) = rotor(ii,2);
+            pos = pos + 1;
+        end
+    end
+    xR(pos) = xR(1);
+    yR(pos) = yR(1);
+    
+    Acu  = geo.Acoilf;
+    kcuf = geo.win.kcuf;
+    Mass = round(rho*Acu/1e6*2*2*p*l/1e3*kcuf,2);%*kcu; Da aggiungere il fattore di riempimento di rotore
 else
     Mass = 0;
 end

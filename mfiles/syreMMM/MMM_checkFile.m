@@ -16,7 +16,7 @@
 function [motorModel,flag] = MMM_checkFile(pathname,filename)
 
 if nargin()==0
-    [filename,pathname] = uigetfile([cd '\*.mat'],'Select motor file');
+    [filename,pathname] = uigetfile(checkPathSyntax([cd '\*.mat']),'Select motor file');
     if ~filename
         error('No file selected')
     end
@@ -69,7 +69,7 @@ end
 disp('-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-')
 
 disp('Check result folder')
-resFolder = [pathname filename(1:end-4) '_results\'];
+resFolder = checkPathSyntax([pathname filename(1:end-4) '_results\']);
 if exist(resFolder,'dir')
     disp(' (v) exist')
 else
@@ -79,7 +79,7 @@ else
 end
 
 disp('Check MMM folder')
-MMMfolder = [resFolder 'MMM results\'];
+MMMfolder = checkPathSyntax([resFolder 'MMM results\']);
 if exist(MMMfolder,'dir')
     disp(' (v) exist')
 else

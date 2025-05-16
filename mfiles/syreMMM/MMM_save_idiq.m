@@ -17,7 +17,7 @@ function MMM_save_idiq(motorModel)
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Inverse Model dq - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Inverse Model dq - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 if ~exist([pathname resFolder],'dir')
     mkdir([pathname resFolder])

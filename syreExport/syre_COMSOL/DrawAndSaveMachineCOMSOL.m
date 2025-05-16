@@ -35,14 +35,19 @@ end
 
 if dataSet.custom==0 || (isequal(button,'Yes') && (dataSet.custom)) 
     if nargin==1
-        [filename,pathname] = uiputfile([dataSet.currentpathname 'newmachine.mph'],'Input machine name and location');
-        if ~filename
-            error('No file name selected');
-        end
+        %[filename,pathname] = uiputfile([pathIn nameIn],'Input machine name and location');
+        % if ~filename
+        %     error('No file name selected');
+        % end
+        filename = nameIn;
+        pathname = pathIn;
     else
         filename = strrep(filename,'.mat','.mph');
     end
-    
+    if ~isfolder(strcat(pathIn, strrep(nameIn,'.mph','_Comsol')))
+        mkdir(pathname, strrep(nameIn,'.mph','_Comsol'));
+    end
+
     [~, ~, geo, per, mat] = data0(dataSet);
     RQ = dataSet.RQ;
     

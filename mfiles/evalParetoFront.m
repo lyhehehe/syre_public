@@ -27,7 +27,7 @@ pivot_cost = 1;
 
 syreRoot = fileparts(which('syre.png')); %OCT
 if nargin<1
-    [filename, pathname_ini] = uigetfile('results\*.mat', 'Pick a file');
+    [filename, pathname_ini] = uigetfile(checkPathSyntax('results\*.mat'), 'Pick a file');
     load([pathname_ini filename]);
     if ~exist('dataSet')
         dataSet=build_dataSet(geo0,per);
@@ -53,7 +53,7 @@ end
 
 % dir_name = strrep(filename,'end_','');
 dir_name = strrep(filename,'.mat','');
-pathname_res = [pathname_ini dir_name '\'];
+pathname_res = checkPathSyntax([pathname_ini dir_name '\']);
 [~,MESSAGE,~] = mkdir(pathname_res);
 
 eval_type = 'singt';
@@ -129,7 +129,7 @@ parfor m = 1:size(x,1)
     
     if per_temp.MechStressOptCheck
         warning 'off'
-        mkdir([pathname_res '\MechStress']);
+        mkdir(checkPathSyntax([pathname_res '\MechStress']));
         warning 'on'
         figure();
         figSetting();
@@ -140,7 +140,7 @@ parfor m = 1:size(x,1)
         title(['Von Mises Stress [MPa] - mot\_' mot_index])
         sVM_max = max(output{m}.sVonMises);
         set(gca,'CLim',[0 sVM_max]/1e6)
-        set(gcf,'FileName',[pathname_res '\MechStress\mot_' mot_index '_mech.fig'])
+        set(gcf,'FileName',checkPathSyntax([pathname_res '\MechStress\mot_' mot_index '_mech.fig']))
         savePrintFigure(gcf)
         close
     end
@@ -298,11 +298,11 @@ for m=1:size(x,1)
 %     dataSet.RQ = geo.RQ;
     
     if isoctave()  %OCT
-        name_file = strcat(pathname, '\mot_', mot_index, '.mat');
+        name_file = checkPathSyntax(strcat(pathname, '\mot_', mot_index, '.mat'));
         save ('-mat7-binary', name_file,'geo','cost','per','dataSet','mat');
         clear name_file
     else
-        save([pathname_res '\mot_' mot_index '.mat'],'geo','cost','per','dataSet','mat','out');
+        save(checkPathSyntax([pathname_res '\mot_' mot_index '.mat']),'geo','cost','per','dataSet','mat','out');
     end
     
     %%%%%%%%%
@@ -325,10 +325,10 @@ if OUT.Param.NOBJ==1
     ylabel(['log(' geo0.OBJnames{1} ')'])
     h=gcf();
     if isoctave()   %OCT
-        fig_name=strcat(pathname_res, '\goalVSgenerations - ', name_case);
+        fig_name = checkPathSyntax(strcat(pathname_res, '\goalVSgenerations - ', name_case));
         hgsave(h,[fig_name]);
     else
-        saveas(gcf,[pathname_res '\goalVSgenerations - ' name_case '.fig'])
+        saveas(gcf,checkPathSyntax([pathname_res '\goalVSgenerations - ' name_case '.fig']))
     end
     
 elseif OUT.Param.NOBJ==2
@@ -385,12 +385,13 @@ elseif OUT.Param.NOBJ==3
     title('Pareto front')
     h=gcf();
     if isoctave()
-        fig_name=strcat(pathname_res, '\Pareto - ', name_case);
+        fig_name=checkPathSyntax(strcat(pathname_res, '\Pareto - ', name_case));
         hgsave(h,[fig_name]);
     else
-        saveas(gcf,[pathname_res '\Pareto - ' name_case '.fig']);
+        saveas(gcf,checkPathSyntax([pathname_res '\Pareto - ' name_case '.fig']));
     end
-    
+else
+    [front,idx] = FastParetoEstimation(x,COST);
 end
 
 % bw = 0.7;
@@ -432,7 +433,7 @@ end
 
 if OUT.eval_type=='MO_OA'
     if OUT.Param.NOBJ>1
-        save([pathname_res '\' filename],'front','idx','-append');
+        save(checkPathSyntax([pathname_res '\' filename]),'front','idx','-append');
     end
 end
 

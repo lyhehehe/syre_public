@@ -38,6 +38,10 @@ dataSet.RotorFilletOut  = dataSet.RotorFilletOut*ScaleFactor;
 
 dataSet.SleeveThickness = dataSet.SleeveThickness*ScaleFactor;
 
+dataSet.SlotConductorHeight = dataSet.SlotConductorHeight*ScaleFactor;
+dataSet.SlotConductorWidth  = dataSet.SlotConductorWidth*ScaleFactor;
+dataSet.SlotConductorRadius = dataSet.SlotConductorRadius*ScaleFactor;
+
 dataSet.Mesh      = dataSet.Mesh*ScaleFactor;
 % dataSet.Mesh_MOOA = dataSet.Mesh_MOOA*ScaleFactor;
 dataSet.MinMechTol = dataSet.MinMechTol*ScaleFactor ;

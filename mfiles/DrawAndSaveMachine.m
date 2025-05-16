@@ -78,6 +78,7 @@ if dataSet.custom
         
 %         if ~strcmp(fileIn,[pathname filename])
             fileTmp = [cd '\tmp\' filename];  
+            fileTmp = checkPathSyntax(fileTmp);
             copyfile(fileIn , fileTmp);
             copyfile(fileTmp,[pathname filename])
             delete (fileTmp)
@@ -103,7 +104,7 @@ if dataSet.custom==0 || (isequal(button,'Yes') && (dataSet.custom))
     geo.RQ = RQ;
     
     filename = strrep(filename,'fem','mat');
-    dataSet.currentpathname = [pathname '\'];
+    dataSet.currentpathname = checkPathSyntax([pathname '\']);
     dataSet.currentfilename = filename;
     dataSet.slidingGap      = 1; % R347
     if dataSet.Qs==6*dataSet.Num3PhaseCircuit*dataSet.NumOfSlots*dataSet.NumOfPolePairs

@@ -21,18 +21,22 @@ Iq = motorModel.AppInductanceMap_dq.Iq;
 Ld = motorModel.AppInductanceMap_dq.Ld;
 Lq = motorModel.AppInductanceMap_dq.Lq;
 Fm = motorModel.AppInductanceMap_dq.Fm;
+Tr = motorModel.AppInductanceMap_dq.Tr;
+Tm = motorModel.AppInductanceMap_dq.Tm;
 
 axisType = motorModel.data.axisType;
 
 pathname = motorModel.data.pathname;
 motName  = motorModel.data.motorName;
-resFolder = [motName '_results\MMM results\' 'Apparent Inductance Maps - ' int2str(motorModel.data.tempPM) 'deg\'];
+resFolder = checkPathSyntax([motName '_results\MMM results\' 'Apparent Inductance Maps - ' int2str(motorModel.data.tempPM) 'deg\']);
 
 %% Surfaces
 figNames{1} = 'InducD';
 figNames{2} = 'InducQ';
 figNames{3} = 'FluxM';
 figNames{4} = 'Anisotropy';
+figNames{5} = 'TorqueReluctance';
+figNames{6} = 'TorquePM';
 
 switch axisType
     case 'SR'
@@ -74,6 +78,10 @@ for ii=1:length(figNames)
         case 4
             zlabel(csiName)
             set(gca,'ZLim',[min(csi,[],'all') max(csi,[],'all')]);
+        case 5
+            zlabel('$T_{rel}$ (Nm)')
+        case 6
+            zlabel('$T_{PM}$ (Nm)')
     end
 end
 
@@ -84,6 +92,10 @@ contour3(hax(2),Id,Iq,Lq,'EdgeColor','k','ShowText','off')
 surf(hax(3),Id,Iq,Fm,'FaceColor','interp','EdgeColor','k','LineWidth',1.5)
 surf(hax(4),Id,Iq,csi,'FaceColor','interp','EdgeColor','none')
 contour3(hax(4),Id,Iq,csi,'EdgeColor','k','ShowText','off')
+surf(hax(5),Id,Iq,Tr,'FaceColor','interp','EdgeColor','none')
+contour3(hax(5),Id,Iq,Tr,'EdgeColor','k','ShowText','off')
+surf(hax(6),Id,Iq,Tm,'FaceColor','interp','EdgeColor','none')
+contour3(hax(6),Id,Iq,Tm,'EdgeColor','k','ShowText','off')
 
 
 %% Save figures

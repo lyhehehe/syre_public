@@ -72,13 +72,28 @@ for ii=1:length(BLKLABELSrot.xy(:,1))
             end
             mi_clearselected;
         case 8 % rotor bar
-            barName = ['bar' int2str(bb)];
-            mi_addcircprop(barName,0,1);
-            mi_addblocklabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
-            mi_selectlabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
-            mi_setblockprop(mat.BarCond.MatName,0,fem.res,barName,0,200+bb,1);
-            mi_clearselected;
-            bb = bb+1;
+            if strcmp(geo.RotType,'IM')
+                barName = ['bar' int2str(bb)];
+                mi_addcircprop(barName,0,1);
+                mi_addblocklabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
+                mi_selectlabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
+                mi_setblockprop(mat.BarCond.MatName,0,fem.res,barName,0,200+bb,1);
+                mi_clearselected;
+                bb = bb+1;
+            else
+                barName = 'field';% int2str(bb)];
+                if rem(bb,2)==1
+                    mi_addcircprop(barName,0,1);
+                    dir = 1;
+                else
+                    dir = -1;
+                end
+                mi_addblocklabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
+                mi_selectlabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
+                mi_setblockprop(mat.BarCond.MatName,0,fem.res,barName,0,200+bb,BLKLABELSrot.xy(ii,end));
+                mi_clearselected;
+                bb = bb+1;
+            end
         case 9 % sleeve
             mi_addblocklabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));
             mi_selectlabel(BLKLABELSrot.xy(ii,1),BLKLABELSrot.xy(ii,2));

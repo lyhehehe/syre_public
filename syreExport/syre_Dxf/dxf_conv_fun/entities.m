@@ -52,7 +52,7 @@ testo = 'ENTITIES';
 fprintf(fid,'%s\n',testo);
 
 % Riconoscimento della matrice (statore)
-if ~isempty(statore)
+if ~isempty(statore) && ~isnan(statore(1,1))
     dimobj = size(statore);
     righe = dimobj(1);
     layer = '1';
@@ -71,7 +71,7 @@ if ~isempty(statore)
 end
 
 % Riconoscimento della matrice (rotore)
-if ~isempty(rotore)
+if ~isempty(rotore) && ~isnan(rotore(1,1))
 
     % check for NaN in the first 4 columns (LINES)
     rotore = rotore(not(isnan(rotore(:,1))),:);
@@ -204,5 +204,3 @@ testo = '0';
 fprintf(fid,'%s\n',testo);
 testo = 'ENDSEC';
 fprintf(fid,'%s\n',testo);
-
-

@@ -46,6 +46,8 @@ switch library
         end
 end
 
+filename = checkPathSyntax(filename);
+
 % if strcmp(type,'Iron')
 %     filename='materialLibrary\iron_material.mat';
 % elseif strcmp(type,'Conductor')

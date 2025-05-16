@@ -22,7 +22,8 @@ function [DemagOut]=demagnetizationDetectionPoint(setup)
 
 if nargin<1
     
-    [filename,pathname,~]=uigetfile([cd '\.mat'],'Select a PM machine');
+    % [filename,pathname,~]=uigetfile([cd '\.mat'],'Select a PM machine');
+    [filename,pathname,~]=uigetfile({'.mat'},'Select a PM machine',cd);
     load([pathname filename]);
     
     i0 = per.i0;
@@ -83,6 +84,7 @@ Br = interp1(mat.LayerMag.temp.temp,mat.LayerMag.temp.Br,per.tempPP);
 Bd = interp1(mat.LayerMag.temp.temp,mat.LayerMag.temp.Bd,per.tempPP);
 
 resFolder=[filename(1:end-4) '_DemagPoint_' int2str(per.tempPP) 'degC\'];
+resFolder = checkPathSyntax(resFolder);
 if ~isfolder([pathname resFolder])
     mkdir(pathname,resFolder);
 end
@@ -90,6 +92,7 @@ resFolder=[pathname resFolder];
 save([resFolder 'setupData.mat'],'setup');
 
 motFolder=[resFolder 'critical machines\'];
+motFolder = checkPathSyntax(motFolder);
 if ~isfolder(motFolder)
     mkdir(motFolder);
 end

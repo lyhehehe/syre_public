@@ -15,7 +15,7 @@
 function [PwMap] = MMM_effyMap_Torque2Power(TwMap,pathname)
 
 if nargin()==0
-    [filename,pathname] = uigetfile([cd '\*.mat'],'Select the TwMap file');
+    [filename,pathname] = uigetfile(checkPathSyntax([cd '\*.mat']),'Select the TwMap file');
     load([pathname filename],'TwMap')
 end
 

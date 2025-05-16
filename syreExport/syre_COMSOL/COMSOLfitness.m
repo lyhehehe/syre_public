@@ -16,7 +16,7 @@ function [geo,mat,out,pathname] = COMSOLfitness(RQ,geo,per,mat,eval_type,pathnam
 
 pathnameIn = pathname;
 [~,pathname]=createTempDir();
-copyfile([pathnameIn strrep(filename,'.mat','.mph')],[pathname strrep(filename,'.mat','.mph')]); % copy .mph in the temporary folder
+copyfile([strcat(pathnameIn,filename(1:end-4),'_Comsol\') strrep(filename,'.mat','.mph')],[pathname strrep(filename,'.mat','.mph')]); % copy .mph in the temporary folder
 
 [SOL] = simulate_xdeg_COMSOL(geo,per,eval_type,pathname,filename);
 
