@@ -73,6 +73,7 @@ if strcmp(motorModel.data.motorType,'PM')
 else
     Idemag0 = NaN;
     IdemagTempMax0 = NaN;
+    Idemag20deg0 = NaN;
 end
 
 % evaluation of the HWC current

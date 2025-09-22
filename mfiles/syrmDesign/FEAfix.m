@@ -220,10 +220,12 @@ if dataSet.syrmDesignFlag.i0==0
     per.J    = NaN;
     per.kj   = dataSet.ThermalLoadKj;
     per.Loss = NaN;
+    per.flag_OptCurrConst = 0;
 elseif dataSet.syrmDesignFlag.i0==1
     per.J    = dataSet.CurrentDensity;
     per.kj   = NaN;
     per.Loss = NaN;
+    per.flag_OptCurrConst = 1;
 end
 
 

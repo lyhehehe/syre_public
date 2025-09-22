@@ -45,8 +45,15 @@ n3ph = dataIn.Num3PhaseCircuit;
 
 
 per.EvalSpeed = dataIn.EvalSpeed;
+EvalSpeed = per.EvalSpeed*ones(size(CurrLoPP));
 
 clc;
+
+% back compatibility EESM
+if strcmp(geo.RotType,'EESM')
+    geo.axisType = 'SR';
+    dataIn.axisType = 'SR';
+end
 
 if ~isfield(geo,'axisType')
     if strcmp(geo.RotType,'SPM') || strcmp(geo.RotType,'Vtype')||strcmp(geo.RotType,'Spoke-type')
@@ -75,6 +82,12 @@ per.BrPP=BrPP;
 per.nsim_singt = NumOfRotPosPP;       % # simulated positions
 per.delta_sim_singt = AngularSpanPP;  % angular span of simulation
 per.if = dataIn.FieldCurrent;         % Field Current EESM
+FieldCurrent = dataIn.FieldCurrent;   % For multiple simultions
+
+if ~strcmp(dataSet.TypeOfRotor,'EESM')
+    FieldCurrent = zeros(size(CurrLoPP));
+end
+
 
 %custom current
 if dataIn.CustomCurrentEnable
@@ -124,9 +137,11 @@ geometry = cell(1,length(CurrLoPP));
 tempDirName = cell(1,length(CurrLoPP));
 for ii = 1:length(CurrLoPP)
     performance{ii} = per;
-    performance{ii}.overload = CurrLoPP(ii);
-    performance{ii}.gamma    = GammaPP(ii);
-    performance{ii}.offset   = offset(ii);
+    performance{ii}.overload  = CurrLoPP(ii);
+    performance{ii}.gamma     = GammaPP(ii);
+    performance{ii}.offset    = offset(ii);
+    performance{ii}.if        = FieldCurrent(ii);
+    performance{ii}.EvalSpeed = EvalSpeed(ii);
 end
 
 % if strcmp(eval_type,'singtIron') && length(CurrLoPP)>1
@@ -140,7 +155,9 @@ if nSim==n3ph
     performance{1}.overload = CurrLoPP;
     performance{1}.gamma    = GammaPP;
     performance{1}.offset   = zeros(1,n3ph);
+    performance{1}.if       = FieldCurrent(ii);
 end
+
 
 geo.RemoveTMPfile = 'OFF';
 
@@ -311,7 +328,11 @@ for ii = 1:nSim
     if dataIn.CustomCurrentEnable
         FILENAME = ['T_eval_CustomCurrent_' datestr(now,30)];
     else
-        FILENAME = ['T_eval_',iStr,'_',gammaStr '_' int2str(dataIn.tempPP) 'deg'];
+        if strcmp(geo.RotType,'EESM')
+            FILENAME = ['T_eval_',iStr,'_',gammaStr '_' int2str(floor(dataIn.FieldCurrent)) 'f' int2str(10*(dataIn.FieldCurrent-floor(dataIn.FieldCurrent)))];
+        else
+            FILENAME = ['T_eval_',iStr,'_',gammaStr '_' int2str(dataIn.tempPP) 'deg'];
+        end
         %     FILENAME = [filemot(1:end-4) '_T_eval_',iStr,'_',gammaStr];
     end
 
@@ -380,6 +401,10 @@ for ii = 1:nSim
             if exist('plot_ironLoss_geometry.m','file')
                 plot_ironLoss_geometry(geo,per,mat,out,newDir);
             end
+    end
+    
+    if nSim>5
+        close all
     end
 
 end

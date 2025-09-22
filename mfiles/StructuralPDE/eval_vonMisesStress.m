@@ -20,7 +20,7 @@ custom = dataIn.custom;
 
 pathname = dataIn.currentpathname;
 filename = dataIn.currentfilename;
-load([pathname filename])
+load([pathname filename]);
 
 dataSet.EvalSpeed = dataIn.EvalSpeed;
 dataSet.MeshStructuralPDE = dataIn.MeshStructuralPDE;
@@ -71,7 +71,7 @@ end
 % end
 
 warning('off')
-disp(['Creation of the PDE model...'])
+disp('Creation of the PDE model...')
 tic
 
 % if (custom)

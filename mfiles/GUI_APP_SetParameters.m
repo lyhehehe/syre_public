@@ -930,7 +930,7 @@ set(app.Active3phasesetsEditField,'Value',mat2str(dataSet.Active3PhaseSets));
 %Custom Current
 set(app.CustomCurrentFile,'Value',dataSet.CustomCurrentFilename);
 set(app.AxistypeDropDown,'Value',dataSet.axisType);
-set(app.FieldcurrentAEditField,'Enable','on','Value',num2str(dataSet.FieldCurrent)); % EESM
+set(app.FieldcurrentAEditField,'Enable','on','Value',mat2str(dataSet.FieldCurrent)); % EESM
 
 switch dataSet.EvalType
     case 'singt'

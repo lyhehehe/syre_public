@@ -405,6 +405,9 @@ BLKLABELSrot.boundary = [
     xSleeveBound1 ySleeveBound1 codBound_periodic;
     xSleeveBound2 ySleeveBound2 codBound_periodic;
     ];
+
+BLKLABELSrot.boundary = BLKLABELSrot.boundary(~isnan(BLKLABELSrot.boundary(:,1)),:);    %remove NaN rows 
+
 % Rotate boundary selection points
 [xtemp,ytemp]=rot_point(BLKLABELSrot.boundary(:,1),BLKLABELSrot.boundary(:,2),90/p*pi/180);
 BLKLABELSrot.boundary=[xtemp,ytemp,BLKLABELSrot.boundary(:,3:end)];

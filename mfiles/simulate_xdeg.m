@@ -165,6 +165,8 @@ switch eval_type
         angIni  = 0;
         angFin  = 360/(2*p)*ps;
         angRes  = 1002;
+        angRes  = 3600/(2*p)*ps+2;
+        angRes  = 100*360/(6*geo.p*geo.q*geo.win.n3phase)*geo.Qs+2;
         angVect = linspace(angIni,angFin,angRes);
         %angVect = angVect(2:end-1); % the first and the last point must be avoided because they are on the boundary
         %angRef = cumsum(diff(angVect));

@@ -27,7 +27,6 @@ filename = [filename ext]; % fem file name
 
 [~,pathname]=createTempDir();
 
-flagMTPA = 0;
 
 if ~isempty(RQ)
 
@@ -280,6 +279,28 @@ if flagDemag
     out.dPM  = max(SOL.dPM);
 end
 
+% Variables necessary for MTPA calculation
+flagMTPA = 0;
+
+maxIter = 4;
+gammaStep = 2;
+direction = 0;
+
+if isfield(per,'if0')
+    per.if = per.if0;
+else
+    per.if = 0;
+end
+if ~isempty(RQ)
+    RQ(end) = 90;
+end
+
+if any(strcmp ('gamma', geo.RQnames))
+    flagMTPA = 0;
+else
+    flagMTPA = 1;
+end
+
 
 if ~isempty(RQ)     % MODE optimization (RQ geometry)
 
@@ -292,12 +313,115 @@ if ~isempty(RQ)     % MODE optimization (RQ geometry)
             cost(temp1) = -out.T;
         else
             % aggiungere ricerca MTPA
+            gamma0 = RQ(end);
+            jj = 1;
+            done = 0;
+            TVect    = nan(1,maxIter);
+            gVect    = nan(1,maxIter);
+            dTppVect = nan(1,maxIter);
+            idqVect  = nan(1,maxIter);
+            fdqVect  = nan(1,maxIter);
+
             perTmp = per;
-            SOL = simulate_xdeg(geo,perTmp,mat,eval_type,pathname,filename);
-            cost(temp1) = -mean(SOLtmp.T);
+            TmpSOL_old = [];
+            TmpSOL_new = [];
+
+
+             while ~done
+                    if jj==1
+                        gammaSim = gamma0;
+                    elseif jj==2
+                        gammaSim = gamma0+gammaStep;
+                    elseif jj==3
+                        gammaSim = gamma0-gammaStep;
+                    else
+                        gammaSim = gammaSim+direction*gammaStep;
+                    end
+
+                     RQ(end) = gammaSim;
+                     TmpSOL = simulate_xdeg(geo,perTmp,mat,eval_type,pathname,filename);
+                     TVect(jj)    = mean(TmpSOL.T);
+                     gVect(jj)    = gammaSim;
+                     dTppVect(jj) = max(TmpSOL.T) - min(TmpSOL.T);
+                     idqVect(jj)  = mean(TmpSOL.id)+j*mean(TmpSOL.iq);
+                     fdqVect(jj)  = mean(TmpSOL.fd)+j*mean(TmpSOL.fq);
+                     
+                    % To save the last 2 results of the iteractive process
+                     TmpSOL_old = TmpSOL_new;
+                     TmpSOL_new = TmpSOL;
+
+
+                     if jj==3
+                            [~,index] = max(TVect,[],'omitnan');
+                            if index==1
+                               done=1;
+                            elseif index==2
+                                   direction=+1;
+                            else
+                                   direction=-1;
+                            end
+                      elseif jj>3
+                          if TVect(jj)<TVect(jj-1)
+                             done=1;
+                          end
+                     end
+
+                     if jj==maxIter
+                          done=1;
+                     end
+
+                     jj = jj+1;
+                     disp(['Simulation ' int2str(jj-1) ' done'])
+             end
+
+             [~,index] = max(TVect,[],'omitnan');
+
+            
+
+             % Output data
+              OUT.geo   = geo;
+              OUT.per   = perTmp;
+              OUT.mat   = mat;
+              OUT.T     = TVect(index);
+              OUT.dTpp  = dTppVect(index);
+              OUT.gamma = gVect(index);
+              OUT.idq   = idqVect(index);
+              OUT.fdq   = fdqVect(index);
+              OUT.RQ    = RQ;
+              %OUT.nFEMM = nFEMM;
+              OUT.Pjs   = 3/2*per.Rs*abs(OUT.idq)^2;
+
+              % Identify Rf value depending on rotor geometry
+              if strcmp(geo.RotType, 'EESM')
+                 Rf=per.Rf;
+                 OUT.Pjf   = Rf*out.if;
+              else
+                  Rf=0;
+                  OUT.Pjf = nan;
+              end
+
+              if mean(TmpSOL_new.T) > mean(TmpSOL_old.T)
+                  OUT.SOL = TmpSOL_new;
+              else
+                  OUT.SOL = TmpSOL_old;
+              end
+
+             out.SOL = OUT.SOL;
+             out.id     = real(OUT.idq);                                   % [A]
+             out.iq     = imag(OUT.idq);                                   % [A]
+             out.fd     = real(OUT.fdq);                                   % [Vs]
+             out.fq     = imag(OUT.fdq);                                   % [Vs]
+             out.T      = OUT.T;                                           % [Nm]
+             out.dTpp   = OUT.dTpp;                                        % [Nm]
+             out.gamma = OUT.gamma;                                        % [degrees] MTPA angle
+
+             cost(temp1) = -mean(OUT.T);
+             temp1 = temp1+1;
+   
         end
-        temp1 = temp1+1;
+        
     end
+
     % Torque Ripple
     if temp1<=length(geo.OBJnames) && strcmp(geo.OBJnames{temp1},'TorRip')
         %         cost(temp1) = out.dTpu*100;
@@ -375,7 +499,6 @@ if ~isempty(RQ)     % MODE optimization (RQ geometry)
     % Structural GalFerContest
     if geo.statorYokeDivision
         cost = [cost outStruct.sigmaTotPrc/1e6 tempCuMax tempCuAvg];
-        % Occho: aggiungere anche termico come ultimo elemento invece di NaN
     else
         % penalize weak solutions
         for ii = 1:length(cost)

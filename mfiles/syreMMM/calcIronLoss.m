@@ -64,20 +64,20 @@ elseif strcmp(IronLossModel.type,'fitIM1')
     c2 = IronLossModel.param.c2;
     c3 = IronLossModel.param.c3;
 
-    Pfe=k1*(fs/f0).^c1.*Fs.^a+k2*(fs/f0).^c2.*Iq.^b-k3*(fs/f0).^c3.*Fs.*Iq;
+    Pfe=k1*(FreqElet/f0).^c1.*abs(Fd+j*Fq).^a+k2*(FreqElet/f0).^c2.*Iq.^b-k3*(FreqElet/f0).^c3.*abs(Fd+j*Fq).*Iq;
     
-    Pfes_h = NaN;
-    Pfes_c = NaN;
-    Pfer_h = NaN;
-    Pfer_c = NaN;
-    Ppm    = NaN;
+    Pfes_h = abs(Pfe);
+    Pfes_c = zeros(size(Pfe));
+    Pfer_h = zeros(size(Pfe));
+    Pfer_c = zeros(size(Pfe));
+    Ppm    = zeros(size(Pfe));
     
 elseif strcmp(IronLossModel.type,'point')
-    Pfe0=IronLossModel.Pfe0;
-    F0=IronLossModel.F0;
-    f0=IronLossModel.f0;
-    expFlux=IronLossModel.expFlux;
-    expFreq=IronLossModel.expFreq;
+    Pfe0    = IronLossModel.Pfe0;
+    F0      = IronLossModel.F0;
+    f0      = IronLossModel.f0;
+    expFlux = IronLossModel.expFlux;
+    expFreq = IronLossModel.expFreq;
     
     Fabs=abs(Fd+j*Fq);
     

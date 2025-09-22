@@ -29,6 +29,13 @@ set(app.Numberof3phasesetsEditField,...
     'Editable','off');
 set(app.MotortypeEditField,'Value',data.motorType);
 set(app.AxistypeDropDown,'Value',data.axisType);
+if ~strcmp(motorModel.data.motorName,'No motor selected') && strcmp(motorModel.dataSet.TypeOfRotor,'EESM')
+    set(app.MotortypeEditField,'Value',data.motorType,'Enable','on','Editable','off');
+    set(app.AxistypeDropDown,'Value',data.axisType,'Enable','off','Editable','off');
+else
+    set(app.MotortypeEditField,'Value',data.motorType,'Enable','on','Editable','on');
+    set(app.AxistypeDropDown,'Value',data.axisType,'Enable','on','Editable','on');
+end
 set(app.RatedpowerEditField,'Value',num2str(data.P0));
 set(app.RatedtorqueEditField,'Value',num2str(data.T0));
 set(app.RatedcurrentEditField,'Value',num2str(data.i0));
@@ -147,12 +154,18 @@ if ~isempty(motorModel.DemagnetizationLimit)
         'Value',1);
     set(app.PlotDemagnetizationButton,'Enable','on')
     set(app.SaveDemagnetizationButton,'Enable','on')
+    set(app.LoadDemagnetizationButton,'Enable','on')
 else
     set(app.DemagnetizationLimitCheckBox,...
         'Enable','off',...
         'Value',0);
     set(app.PlotDemagnetizationButton,'Enable','off')
     set(app.SaveDemagnetizationButton,'Enable','off')
+    if ~strcmp(motorModel.data.motorName,'No motor selected') && strcmp(motorModel.dataSet.TypeOfRotor,'EESM')
+        set(app.LoadDemagnetizationButton,'Enable','off')
+    else
+        set(app.LoadDemagnetizationButton,'Enable','on')
+    end
 end
 % AOA (Admitted Operating Area) MTPA/MTPV
 if ~isempty(motorModel.controlTrajectories)

@@ -126,7 +126,7 @@ Pfe  = (Pfes+Pfer+Ppm);
 % 3) Joule rotor loss (IM only)
 if strcmp(motorType,'IM')
     Prot=3/2*IM.Rr.*IM.Ir.^2;
-    Prot=Prot*(1+0.004*(temp-temp0));
+    % Prot=Prot*(1+0.004*(temp-temp0));
 else
     Prot=zeros(size(Id));
 end

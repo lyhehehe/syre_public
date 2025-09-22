@@ -12,17 +12,20 @@
 %    See the License for the specific language governing permissions and
 %    limitations under the License.
 
-function [SOL] = simulate_xdeg_COMSOL(geo,per,eval_type,pathname,filename)
+function [SOL] = simulate_xdeg_COMSOL(geo,per,eval_type,pathname,filename,pathnameIn)
 
 % Connessione a COMSOL e Apertura modello impostato
 import com.comsol.model.*
 import com.comsol.model.util.*
-model = mphopen([strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\'), filename(1:end-4), '.mph']);
+model = mphopen([pathname filename(1:end-4) '.mph']);
 
-load([filename(1:end-4), '.mat']);
+load(fullfile(pathnameIn, [filename(1:end-4), '.mat']));
 
-% Definizione della directory di output per i file CSV
-csv_dir = strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\');
+% Output directory definition for CSV files
+csv_dir = fullfile (pathnameIn, [filename(1:end-4) '_Comsol\']);
+if ~exist(csv_dir, 'dir')
+    mkdir(csv_dir);
+end
 
 % Creazione dei percorsi completi per i file CSV
 torque_csv = fullfile(csv_dir, [filename(1:end-4), '_Torque.csv']);
@@ -32,7 +35,6 @@ Pfe_r_csv = fullfile(csv_dir, [filename(1:end-4), '_Pfe_r.csv']);
 Pfe_s_csv = fullfile(csv_dir, [filename(1:end-4), '_Pfe_s.csv']);
 PM_losses_csv = fullfile(csv_dir, [filename(1:end-4), '_PM_losses.csv']);
 PjrBar_csv = fullfile(csv_dir, [filename(1:end-4), '_PjrBar.csv']);
-Stress_csv = fullfile(csv_dir, [filename(1:end-4), '_Stress-csv']);
 
 eval_type = 'singt';
 
@@ -46,48 +48,43 @@ eval_type = 'singt';
     %     geo.th0 = geo.th0 + 90;
     % end
 
-% Impostazione discretizzazione vettore potenziale magnetico (lineare = 1, quadratica = 2, cubica = 3)
+% Impostazione: discretizzation potential magnetic vector  (linear = 1, quadratic = 2, cubic = 3)
 model.component('comp1').physics('rmm').prop('ShapeProperty').set('order_magneticvectorpotential', 1);
 
-p = geo.p;                                  % paia poli macchina
-theta_e = per.delta_sim_singt*(per.nsim_singt-1)/per.nsim_singt;                                % intervallo angolare elettrico [deg]
-w = per.EvalSpeed*pi/30;                    % velocità di rotazione [rad/s]
-%theta = theta_e*pi/180/p;                   % angolo meccanico [rad]
-% ts = theta / w;                             % delta time steps [s]
-% t = ts*(per.nsim_singt-1);                      % time step [s]
-t = per.delta_sim_singt/p/w/180*pi*(per.nsim_singt-1)/per.nsim_singt; 
-ts = per.delta_sim_singt/p/w/180*pi/per.nsim_singt;          
-freq = w*p/2/pi;                            % frequenza di alimentazione [Hz]
-theta_m_tot = w*t*180/pi;                   % angolo meccanico di simulazione [deg]
-theta_e_tot = 2*pi*freq*t*180/pi;           % angolo elettrico di simulazione [deg]
 
-% nsim = per.nsim_singt;                     % numero di posizioni di rotore simulate 
-% xdeg = per.delta_sim_singt;                % angolo elettrico di simulazione [deg]
-% gamma = dataSet.GammaPP;                   % angolo vettore corrente Idq dataIn [deg]
-% th0 = geo.th0;                             % offset [deg]
-% p = geo.p;                                 % paia poli macchina
-% w = per.EvalSpeed*30/pi;                   % velocità di rotazione [rad/s]
-% theta_m_tot = xdeg/p*pi/180;               % angolo meccanico di simulazione [rad]
-% t = theta_m_tot/w;                         % tempo di simulazione [s]
-% ts = t/nsim;                               % time step [s]
-% freq = w*p/2/pi;
+%theta_e = per.delta_sim_singt*(per.nsim_singt-1)/per.nsim_singt;    % intervallo angolare elettrico [deg]
+%theta = theta_e*pi/180/p;                                           % angolo meccanico [rad]
+% ts = theta / w;                                                    % delta time steps [s]
+% t = ts*(per.nsim_singt-1);                                         % time step [s]
+p = geo.p;                                                           % paia poli macchina
+w = per.EvalSpeed*pi/30;                                             % velocità di rotazione [rad/s]
+t = (per.delta_sim_singt/(p*w))*pi/180;                                  % time x simulation                 *(per.nsim_singt-1)/per.nsim_singt; 
+%ts = t/(per.nsim_singt-1);                                               % number x function RANGE
+range = linspace(0,t,per.nsim_singt);
+freq = w*p/2/pi;                                                     % frequenza di alimentazione [Hz]
+theta_m_tot = w*t*180/pi;                                            % angolo meccanico di simulazione [deg]
+theta_e_tot = 2*pi*freq*t*180/pi;                                    % angolo elettrico di simulazione [deg]
 
-% iAmp = per.overload*per.i0/(2*geo.p/geo.ps);
-% theta_i = (th0 + gamma)*pi/180;            % Angolo corrente [rad]
-% 
-% id = iAmp*cos(theta_i);       
-% iq = iAmp*sin(theta_i);       
-% Imod = abs(id + 1i*iq);                    % Modulo corrente [A]
-% Iarg = angle(Imod(end)); 
+% nsim = per.nsim_singt;                                             % numero di posizioni di rotore simulate 
+% xdeg = per.delta_sim_singt;                                        % angolo elettrico di simulazione [deg]
+% gamma = dataSet.GammaPP;                                           % angolo vettore corrente Idq dataIn [deg]
+% th0 = geo.th0;                                                     % offset [deg]
+
+if mod(geo.ps, 2)==0
+    N_sim_sectors = geo.p;                %number of mech. sectors simulated
+else
+    N_sim_sectors = geo.p*2;
+end 
 
 % ============== Definizione studio ============== %
+
 
 model.param().set('t', '0 [s]');                                          % impostazione tempo 0 s per la simulazione 
 model.param().set('l', [num2str(geo.l) ' [mm]']);                         % impostazione lunghezza assiale l 
 model.study('std1').setGenIntermediatePlots(true);
 % Time dependent
 model.study('std1').create('time', 'Transient');
-model.study('std1').feature('time').set('tlist', ['range(0,' num2str(ts) ',' num2str(t) ')']);
+model.study('std1').feature('time').set('tlist', num2str(range));                                 %['range(0,' num2str(ts) ',' num2str(t) ')']);
 model.study('std1').feature('time').set('plot', true);
 % TimetoFrequency Losses
 model.study('std1').create('emloss', 'TimeToFrequencyLosses');
@@ -95,10 +92,12 @@ model.study('std1').feature('emloss').set('endtmethod', 'userdef');
 % w_loss = 3*(w/2/pi);
 model.study('std1').feature('emloss').set('lossstarttime', '0');
 model.study('std1').feature('emloss').set('lossendtime', num2str(t));
-% Studio Circuito
-model.study('std1').feature('stat').setSolveFor('/physics/cir', true);
-model.study('std1').feature('time').setSolveFor('/physics/cir', true);
-model.study('std1').feature('emloss').setSolveFor('/physics/cir', true);
+% % Studio Circuito                                     %if "CIR" is activated again, the following row have to be restored  
+% model.study('std1').feature('stat').setSolveFor('/physics/cir', true);
+% model.study('std1').feature('time').setSolveFor('/physics/cir', true);
+% model.study('std1').feature('emloss').setSolveFor('/physics/cir', true);
+model.study('std1').feature('emloss').setSolveFor('/physics/rmm', true);
+model.study('std1').feature('emloss').set('fftendtime', num2str(t));      %è ridondante, non so dove va (per ora)
 
 % ============== Solver Settings ============== %
 
@@ -132,7 +131,7 @@ model.sol('sol1').feature('v2').set('notsol', 'sol1');
 model.sol('sol1').feature('v2').set('notsoluse', 'sol2');
 model.sol('sol1').feature('v2').set('control', 'time');
 model.sol('sol1').create('t1', 'Time');
-model.sol('sol1').feature('t1').set('tlist', ['range(0,' num2str(ts) ',' num2str(t) ')']);
+model.sol('sol1').feature('t1').set('tlist', num2str(range));    %['range(0,' num2str(ts) ',' num2str(t) ')']
 model.sol('sol1').feature('t1').set('plot', 'on');
 model.sol('sol1').feature('t1').set('plotgroup', 'Default');
 model.sol('sol1').feature('t1').set('plotfreq', 'tout');
@@ -171,7 +170,7 @@ model.sol('sol1').feature('v3').set('control', 'emloss');
 model.sol('sol1').create('fft1', 'FFT');
 model.sol('sol1').feature('fft1').set('control', 'emloss');
 model.study('std1').feature('emloss').set('fftstarttime', '0');
-model.study('std1').feature('emloss').set('fftendtime', num2str(t));
+model.study('std1').feature('emloss').set('fftendtime', num2str(t));           %%%%%%%%%%%%%%%%%
 model.study('std1').feature('emloss').set('fftmaxfreq', ['6/(' num2str(t) '-0)']);
 model.sol('sol1').create('su3', 'StoreSolution');
 model.sol('sol1').create('cms1', 'CombineSolution');
@@ -186,11 +185,11 @@ model.sol('sol1').feature('t1').set('maxorder', 2);
 model.sol('sol1').feature('t1').feature('aDef').set('cachepattern', false);
 model.sol('sol1').feature('t1').feature('fc1').set('dtech', 'auto');
 model.sol('sol1').feature('t1').feature('fc1').set('rstep', 4);
-
-% Impostazione bobine nel circuit interface (NB: non spostare i comandi da qui!!)
-model.component('comp1').physics('cir').feature('termI1').set('V_src', 'root.comp1.rmm.VCoil_1');
-model.component('comp1').physics('cir').feature('termI2').set('V_src', 'root.comp1.rmm.VCoil_2');
-model.component('comp1').physics('cir').feature('termI3').set('V_src', 'root.comp1.rmm.VCoil_3');
+                                                                                      %if "CIR" is activated again, the following row have to be restored 
+% % Impostazione bobine nel circuit interface (NB: non spostare i comandi da qui!!)  
+% model.component('comp1').physics('cir').feature('termI1').set('V_src', 'root.comp1.rmm.VCoil_1');
+% model.component('comp1').physics('cir').feature('termI2').set('V_src', 'root.comp1.rmm.VCoil_2'); 
+% model.component('comp1').physics('cir').feature('termI3').set('V_src', 'root.comp1.rmm.VCoil_3');
 
 mphrun(model);                  % run intero modello (con barra di progresso)
 
@@ -250,7 +249,8 @@ model.result().export('tbl1').run();
 
 % Flussi concatenati dq
 model.result().numerical('gev2').set('data', 'dset3');
-model.result().numerical('gev2').set('expr', {'rmm.PhiCoil_1', 'rmm.PhiCoil_2', 'rmm.PhiCoil_3'});
+% model.result().numerical('gev2').set('expr', {'rmm.PhiCoil_1', 'rmm.PhiCoil_2', 'rmm.PhiCoil_3'});  %%%% here- questa vale per il circuito
+model.result().numerical('gev2').set('expr', {'rmm.PhiWinding_1_aPh1', 'rmm.PhiWinding_1_aPh2', 'rmm.PhiWinding_1_aPh3'});
 model.result().numerical('gev2').set('descr', {'Lambda 1', 'Lambda 2', 'Lambda 3'});
 model.result().table('tbl2').comments('Global Evaluation 2');
 model.result().numerical('gev2').set('table', 'tbl2');
@@ -261,7 +261,8 @@ model.result().export('tbl2').run();
 
 % Correnti abc
 model.result().numerical('gev3').set('data', 'dset3');
-model.result().numerical('gev3').set('expr', {'rmm.ICoil_1', 'rmm.ICoil_2', 'rmm.ICoil_3'});
+%model.result().numerical('gev3').set('expr', {'rmm.ICoil_1', 'rmm.ICoil_2', 'rmm.ICoil_3'});  
+model.result().numerical('gev3').set('expr', {'rmm.IWinding_1_aPh1', 'rmm.IWinding_1_aPh2', 'rmm.IWinding_1_aPh3'}); 
 model.result().numerical('gev3').set('descr', {'Coil current', 'Coil current', 'Coil current'});
 model.result().table('tbl3').comments('Global Evaluation 3');
 model.result().numerical('gev3').set('table', 'tbl3');
@@ -325,9 +326,33 @@ model.result().export('tbl7').run();
 pause(0.1);
 
 % Saving Solved Model
-pathname_solved = strcat(cd,'\motorExamples\',filename(1:end-4),'_Comsol\');
+RatedCurrent = dataSet.RatedCurrent;
+CurrLoPP = dataSet.CurrLoPP;
+SimulatedCurrent = RatedCurrent*CurrLoPP;
+GammaPP  = dataSet.GammaPP;
+tempPP = dataSet.tempPP;
 
-mphsave(model, [pathname_solved filename(1:end-4), '_solved.mph']);
+% Format current
+iStr = num2str(SimulatedCurrent, 3);  % 3 significant digits
+iStr = strrep(iStr, '.', 'A');        % Replace dot with 'A'
+
+% Format gamma
+gammaStr = num2str(GammaPP, 4);       % 4 significant digits
+gammaStr = strrep(gammaStr, '.', 'd'); % Replace dot with 'd'
+if ~contains(gammaStr, 'd')
+    gammaStr = [gammaStr 'd'];
+end
+
+% Final folder name
+folder_name = ['T_eval_' iStr '_' gammaStr '_' int2str(tempPP) 'deg'];
+
+pathname_solved = fullfile(pathnameIn, [filename(1:end-4) '_results'], 'COMSOL', folder_name);
+% Create COMSOL folder if it doesn’t exist
+if ~exist(pathname_solved, 'dir')
+    mkdir(pathname_solved);
+end
+
+mphsave(model, fullfile(pathname_solved, [filename(1:end-4) '_solved.mph']));
 
 %% Post-processing (Impostazione struttura SOL)
 
@@ -335,23 +360,40 @@ mphsave(model, [pathname_solved filename(1:end-4), '_solved.mph']);
 axial_torque = readmatrix(torque_csv, 'NumHeaderLines', 5);
 tempo = [axial_torque(:, 1)]';
 Tor = [axial_torque(:, 2)]';
-Tor = repmat(Tor,1,360/per.delta_sim_singt);
+Tor = repmat(Tor,1,360/per.delta_sim_singt);               %note: as electric simulation angle shpuld be used a real multiple of 360
 % theta_elt = tempo*2*pi*freq+geo.th0*pi/180;%-pi/2;
 % theta_elt_deg = theta_elt*180/pi;
 theta_elt_deg = linspace(0,360,(per.nsim_singt)*360/per.delta_sim_singt);
-theta_abc2dq = (linspace(0,360-per.delta_sim_singt/per.nsim_singt,(per.nsim_singt)*360/per.delta_sim_singt) - geo.th0)*pi/180;
+theta_0 = geo.th0;
+
+if strcmp(geo.RotType,'SPM') || strcmp(geo.RotType,'Vtype') || strcmp(geo.RotType,'SPM-Halbach') || strcmp(geo.RotType, 'Seg')
+    if geo.axisType == 'PM'
+        theta_0 = theta_0-90;
+    else
+        theta_0 = (theta_0);
+    end
+elseif strcmp(geo.RotType,'Spoke-type')
+    geo.axisType = 'PM';
+    theta_0 = theta_0;
+else
+    geo.axisType = 'SR';
+    theta_0 = theta_0;
+end
+
+% theta_abc2dq = (linspace(0,360-per.delta_sim_singt/per.nsim_singt,(per.nsim_singt)*360/per.delta_sim_singt) + (geo.th0-90) )*pi/180;
+theta_abc2dq = (linspace(0,360-per.delta_sim_singt/per.nsim_singt,(per.nsim_singt)*360/per.delta_sim_singt) + (theta_0-90) )*pi/180;
 
 % Flussi concatenati 
-concatenated_flux = readmatrix(flux_csv, 'NumHeaderLines', 5);
-lambda_1 = [concatenated_flux(:, 2)]'; 
-lambda_2 = [concatenated_flux(:, 3)]'; 
-lambda_3 = [concatenated_flux(:, 4)]';
-lambda_360 = phaseQuantityDecoding(lambda_1,lambda_2,lambda_3,per.delta_sim_singt);
+concatenated_flux = readmatrix(flux_csv, 'NumHeaderLines', 5);                                          
+lambda_1 = [concatenated_flux(:, 2)]';                                                                  
+lambda_2 = [concatenated_flux(:, 3)]';                                                                  
+lambda_3 = [concatenated_flux(:, 4)]';                                                                  
+lambda_360 = phaseQuantityDecoding(lambda_1,lambda_2,lambda_3,per.delta_sim_singt);                     
 lambda_1 = lambda_360.a;
 lambda_2 = lambda_360.b;
 lambda_3 = lambda_360.c;
 
-lambda_dq = abc2dq(lambda_1, lambda_2, lambda_3, theta_abc2dq);%theta_elt);
+lambda_dq = abc2dq(lambda_1, lambda_2, lambda_3, theta_abc2dq);    %theta_elt);
 lambda_d = lambda_dq(1, :);
 lambda_q = lambda_dq(2, :);
 
@@ -398,8 +440,8 @@ SOL.Ppm    = Ppm;
 SOL.th = theta_elt_deg;
 SOL.id = id_pp;
 SOL.iq = iq_pp;
-SOL.fd = lambda_d;
-SOL.fq = lambda_q;
+SOL.fd = lambda_d*N_sim_sectors;
+SOL.fq = lambda_q*N_sim_sectors;
 
 SOL.T = Tor;
 
@@ -407,6 +449,6 @@ SOL.ia = i_1;
 SOL.ib = i_2;
 SOL.ic = i_3;
 
-SOL.fa = lambda_1;
-SOL.fb = lambda_2;
-SOL.fc = lambda_3;
+SOL.fa = lambda_1*N_sim_sectors;
+SOL.fb = lambda_2*N_sim_sectors;
+SOL.fc = lambda_3*N_sim_sectors;

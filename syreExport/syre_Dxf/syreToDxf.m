@@ -48,8 +48,9 @@ raggi=[];
 avvolgimento=[];
 magneti=[];
 
-DXFconv(raggi,avvolgimento,rotor,stator,magneti,[pathname_DXF filename(1:end-4),'.dxf']);
 
+%DXFconv(raggi,avvolgimento,rotor,stator,magneti,[pathname_DXF filename(1:end-4),'.dxf']);
+DXFconv(raggi, avvolgimento, rotor, stator, magneti, fullfile(pathname, filename));
 
 
 

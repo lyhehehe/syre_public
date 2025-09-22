@@ -220,6 +220,8 @@ if hb > calc_distanza_punti([xp5(1) yp5(1)],[xp4 yp4])
 end
 if wb > yp6-yp5(1)
     wb = yp6-yp5(1);
+elseif wb < yp5(end)-yp5(1)
+    wb = yp5(end)-yp5(1);
 end
 
 xc1 = xp5(1) - hb;
@@ -338,6 +340,9 @@ geo.AreaE = 0;
 % For COMSOL sweep parameters - COMSOL Parametrization with Mechs
 geo.hre = calc_distanza_punti([xp6,yp6],[xp7,yp7]);
 geo.wcu = calc_distanza_punti([xp6,yp6],[xc3,yc3]);
+
+% For COMSOL Fillet numeric stability
+geo.filsub = ry-xp3;
 
 %geo.wd = wd;
 %geo.beta_pu = beta_pu;

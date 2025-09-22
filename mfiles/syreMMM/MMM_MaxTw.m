@@ -314,6 +314,16 @@ if ~strcmp(motorType,'IM')
     flagPlot(17) = 0;
     flagPlot(18) = 0;
     flagPlot(19) = 0;
+else
+    flagPlot(9)  = 0;
+    flagPlot(10) = 0;
+    flagPlot(11) = 0;
+    flagPlot(20) = 0;
+    flagPlot(21) = 0;
+    flagPlot(22) = 0;
+    flagPlot(23) = 0;
+    flagPlot(24) = 0;
+    flagPlot(25) = 0;
 end
 
 flagPlot = flagPlot(flagPlot~=0);
@@ -399,7 +409,7 @@ for ii=1:length(flagPlot)
             colorbar
         case 18
             title('Rotor slip map')
-            contourf(TwMap.n,TwMap.T,TwMap.slip,[-1:0.1:1],'ShowText','on');
+            contourf(TwMap.n,TwMap.T,TwMap.slip,[-0.1:0.01:0.1],'ShowText','on');
             colorbar
         case 19
             title('Rotor current map (A)')

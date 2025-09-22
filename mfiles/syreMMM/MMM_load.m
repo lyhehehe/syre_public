@@ -64,6 +64,9 @@ elseif isfield(mod,'dataSet')   % first time MMM is used
     end
     if strcmp(mod.dataSet.TypeOfRotor,'IM')
         data.motorType = 'IM';
+    elseif strcmp(mod.dataSet.TypeOfRotor,'EESM')
+        data.motorType = 'EE';
+        data.axisType = 'SR';
     end
     
     data.pathname = pathname;

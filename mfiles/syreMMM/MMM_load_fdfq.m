@@ -56,6 +56,19 @@ if isfield(data,'Id')
         fdfq.IM = data.IM;
     end
 
+    if length(size(data.Id)) == 3 % 3D Matrix in case of EESM topology
+        if isfield(data,'Ir')
+            fdfq.Ir = data.Ir;
+        else
+            fdfq.Ir = nan(size(fdfq.Id));
+        end
+
+        if isfield(data,'Fr')
+            fdfq.Fr = data.Fr;
+        else
+            fdfq.Fr = nan(size(fdfq.Id));
+        end
+    end
 %     % check axis style
 %     if ~isfield(data.dataSet,'axisType')
 %         if strcmp(data.dataSet.TypeOfRotor,'SPM')||strcmp(data.dataSet.TypeOfRotor,'Vtype')

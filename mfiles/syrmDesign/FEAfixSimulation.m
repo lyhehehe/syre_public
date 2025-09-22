@@ -23,7 +23,7 @@ end
 nFEA = 0;
 
 i0 = per.i0;
-per.flag_OptCurrConst = 0;
+% per.flag_OptCurrConst = 0;
 % per.nsim_singt = 2;
 per.custom_act = 0;
 
@@ -40,34 +40,42 @@ if ~gammaFix
     OUT.T   = out.T;
     gamma0 = RQ(end);
 else
-    maxIter   = 20;
-    gammaStep = 2;
-    % max angle from initial: 36 elt deg
-    direction = 0;
+    %Initialization
+    maxIter = 5;
+    gammaVect = nan(1, 3 + maxIter);
+    TVect  = nan(1,3 + maxIter);
+    FdVect = nan(1,3 + maxIter);
+    FqVect = nan(1,3 + maxIter);
+    IdVect = nan(1,3 + maxIter);
+    IqVect = nan(1,3 + maxIter);
+    gVect  = nan(1,3 + maxIter);
 
-    gamma0 = RQ(end);
+    % First 3 fixed tests
+    gammaVect(1:3) = [90, 120, 30];
+    for ii = 1:3
+        gammaSim = gammaVect(ii);
+        RQ(end) = gammaSim;
+        [~,geo,~,out,pathname] = FEMMfitness(RQ,geo,per,mat,eval_type,filemot);
+        nFEA = nFEA+1;
+        TVect(ii)  = out.T;
+        FdVect(ii) = out.fd;
+        FqVect(ii) = out.fq;
+        IdVect(ii) = out.id;
+        IqVect(ii) = out.iq;
+        gVect(ii)  = gammaSim;
+    end
 
-    ii = 1;
+    % Interpolation loop
+    for jj = 1:maxIter
+        % Find top 2 values so far
+        [~, idxSort] = sort(TVect(1:3+jj-1), 'descend');
+        g1 = gammaVect(idxSort(1));
+        g2 = gammaVect(idxSort(2));
 
-    done = 0;
-
-    TVect  = nan(1,maxIter);
-    FdVect = nan(1,maxIter);
-    FqVect = nan(1,maxIter);
-    IdVect = nan(1,maxIter);
-    IqVect = nan(1,maxIter);
-    gVect  = nan(1,maxIter);
-
-    while ~done
-        if ii==1
-            gammaSim = gamma0;
-        elseif ii==2
-            gammaSim = gamma0+gammaStep;
-        elseif ii==3
-            gammaSim = gamma0-gammaStep;
-        else
-            gammaSim = gammaSim+direction*gammaStep;
-        end
+        % Midpoints
+        gammaSim = (g1 + g2)/2;
+        ii = 3 + jj;
+        gammaVect(ii) = gammaSim;
 
         RQ(end) = gammaSim;
         [~,geo,~,out,pathname] = FEMMfitness(RQ,geo,per,mat,eval_type,filemot);
@@ -78,27 +86,6 @@ else
         IdVect(ii) = out.id;
         IqVect(ii) = out.iq;
         gVect(ii)  = gammaSim;
-
-        if ii==3
-            [~,index] = max(TVect,[],'omitnan');
-            if index==1
-                done=1;
-            elseif index==2
-                direction=+1;
-            else
-                direction=-1;
-            end
-        elseif ii>3
-            if TVect(ii)<TVect(ii-1)
-                done=1;
-            end
-        end
-
-        if ii==maxIter
-            done=1;
-        end
-
-        ii = ii+1;
     end
 
     [~,index] = max(TVect,[],'omitnan');
@@ -194,7 +181,7 @@ if flagIch
             per.overload = ichTest(ii);
             %per.BrPP     = interp1(mat.LayerMag.temp.temp,mat.LayerMag.temp.Br,per.tempPP);
             [~,~,~,out,~] = FEMMfitness(RQ,geo,per,mat,'singt',filemot);
-
+            nFEA = nFEA+1;
             if strcmp(geo.axisType,'PM')
                 FmTest(ii) = out.fd;
             else
@@ -218,6 +205,7 @@ else
 end
 
 if flagSC
+    per.overload           = 1;
     setup.RQ               = RQ;
     setup.RQ(end)          = 90;
     setup.flagSave         = 0;
@@ -246,6 +234,7 @@ if flagDemagHWC
     end
     RQ(end) = per.gamma;
     [~,~,~,out,~] = FEMMfitness(RQ,geo,per,mat,'demagArea',filemot);
+    nFEA = nFEA+1;
     OUT.dPMHWC  = out.dPM;
     OUT.BminHWC = out.Bmin;
 else
@@ -261,6 +250,7 @@ if flagDemag0
     end
     RQ(end) = per.gamma;
     [~,~,~,out,~] = FEMMfitness(RQ,geo,per,mat,'demagArea',filemot);
+    nFEA = nFEA+1;
     OUT.dPM0  = out.dPM;
     OUT.Bmin0 = out.Bmin;
 else

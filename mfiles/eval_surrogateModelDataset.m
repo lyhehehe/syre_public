@@ -65,6 +65,7 @@ switch dataSet.optType
         X = net(pSobol,populationSize);
 end
 
+
 for ii=1:populationSize
     for nvar=1:numVariables
         Parent(ii,nvar) = Bounds(nvar,1)+X(ii,nvar)*(Bounds(nvar,2)-Bounds(nvar,1));

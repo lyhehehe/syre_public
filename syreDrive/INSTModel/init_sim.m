@@ -13,6 +13,7 @@ inverterModelType = motorModel.SyreDrive.modelSetup.modelType;
 Tstep = 2e-6;
 Ts    = 1/motorModel.SyreDrive.Converter.fPWM;
 
+J_rot = [0 -1;1 0];
 
 %% ----------------Machine and Converter  Parameters------------------------%
 VDC     = motorModel.data.Vdc;
@@ -220,9 +221,9 @@ eMotor.J  = motorModel.data.J;
 % Iron loss
 switch motorModel.SyreDrive.modelSetup.IronLoss
     case 'No'
-        set_param([Slx_name '/Motor model/SimScape FEM-based PMSM/SimScape PMSM'],'loss_param','ee.enum.fem_motor.ironLossesExtended.none')
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Motor model/SimScape FEM-based PMSM/SimScape PMSM'],'loss_param','ee.enum.fem_motor.ironLossesExtended.none')
     case 'Yes'
-        set_param([Slx_name '/Motor model/SimScape FEM-based PMSM/SimScape PMSM'],'loss_param','ee.enum.fem_motor.ironLossesExtended.tabulated3D')
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Motor model/SimScape FEM-based PMSM/SimScape PMSM'],'loss_param','ee.enum.fem_motor.ironLossesExtended.tabulated3D')
         ironLoss.n = linspace(0,motorModel.data.nmax,31);
         [ironLossData.Id,ironLossData.Iq,ironLossData.n] = ndgrid(eMotor.Id,eMotor.Iq,ironLoss.n);
         if strcmp(motorModel.data.motorType,'SR')
@@ -355,26 +356,24 @@ Clarke = 2/3*[1 -0.5 -0.5;0 sqrt(3)/2 -sqrt(3)/2];
 Clarke_inv = [1 0;-0.5 sqrt(3)/2;-0.5 -sqrt(3)/2];
 %% Inverter model
 
-
-
-set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'diode_Vf','0.8');
-set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'diode_Ron','1e-4');
-set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'diode_Goff','1e-5');
+set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'diode_Vf','0.8');
+set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'diode_Ron','1e-4');
+set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'diode_Goff','1e-5');
 
 switch(inverterModelType)
     
     case 'Istantaneous'
         InvModel = 1;
-        set_param([Slx_name '/Inverter Model/Solver Configuration'],'UseLocalSolver','off');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'device_type','ee.enum.converters.switchingdevice.ideal');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'Ron','Rd');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'Goff','1e-4');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'Vth','0.001');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Solver Configuration'],'UseLocalSolver','off');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'device_type','ee.enum.converters.switchingdevice.ideal');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'Ron','Rd');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'Goff','1e-4');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'Vth','0.001');
         
     case 'Average'
         InvModel = 0;
-        set_param([Slx_name '/Inverter Model/Solver Configuration'],'UseLocalSolver','on');
-        set_param([Slx_name '/Inverter Model/Solver Configuration'],'LocalSolverSampleTime','Ts/10');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'device_type','ee.enum.converters.switchingdevice.averaged');
-        set_param([Slx_name '/Inverter Model/Converter (Three-Phase)'],'Ron','Rd');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Solver Configuration'],'UseLocalSolver','on');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Solver Configuration'],'LocalSolverSampleTime','Ts/10');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'device_type','ee.enum.converters.switchingdevice.averaged');
+        set_param([Slx_name '/Power block - Inverter + Motor/Circuital/Inverter Model/Converter (Three-Phase)'],'Ron','Rd');
 end

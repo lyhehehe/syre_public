@@ -49,6 +49,7 @@ NumOfRotPosPP = dataIn.NumOfRotPosPP;
 AngularSpanPP = dataIn.AngularSpanPP;
 NumGrid = dataIn.NumGrid;
 tempPP = dataIn.tempPP;
+SimulatedIf = dataIn.FieldCurrent;
 
 per.flag3phaseSet = dataIn.Active3PhaseSets;
 
@@ -100,7 +101,7 @@ switch MapQuadrants
             iqvect = linspace(0,SimulatedCurrent,NumGrid);
         end
     case 2
-        if strcmp(dataIn.axisType,'PM')
+        if strcmp(dataIn.axisType,'PM') || strcmp(geo.RotType,'EESM')
             idvect = linspace(-SimulatedCurrent,SimulatedCurrent,NumGrid+NumGrid-1);
             iqvect = linspace(0,SimulatedCurrent,NumGrid);
         else
@@ -110,6 +111,9 @@ switch MapQuadrants
     case 4
         idvect = linspace(-SimulatedCurrent,SimulatedCurrent,NumGrid+NumGrid-1);
         iqvect = linspace(-SimulatedCurrent,SimulatedCurrent,NumGrid+NumGrid-1);
+end
+if strcmp(geo.RotType,'EESM')
+    ifvect = linspace(0, SimulatedIf, NumGrid);
 end
 
 if isfield(dataIn,'flagHWCMap')
@@ -133,8 +137,11 @@ if strcmp(dataIn.TypeOfRotor,'IM')
     iqvect(iqvect==0) = iStep/10;
 end
 
-
-[Id,Iq] = meshgrid(idvect,iqvect);
+if strcmp(geo.RotType,'EESM')
+    [Id,Iq,If] = meshgrid(idvect,iqvect,ifvect);
+else
+    [Id,Iq] = meshgrid(idvect,iqvect);
+end
 
 I = Id + 1i * Iq;
 iAmp = abs(I);
@@ -147,13 +154,27 @@ mat = mat;  %#ok parfor compatibility (do not comment)
 geo = geo;  %#ok parfor compatibility (do not comment)
 
 % create vector for parpool efficiency
-[nR,nC] = size(iAmp);
+if strcmp(geo.RotType,'EESM')
+    [nR,nC,nF] = size(iAmp);
+    fVect = If(:);
+else
+    [nR,nC] = size(iAmp);
+    fVect = nan(size(iAmp));
+end
 iVect = iAmp(:);
 gVect = gamma(:);
 
+numWidth = 4; %For text displacement in the command window
+% for ii=1:length(iVect)
 parfor ii=1:length(iVect)
-    disp(['Evaluation of position I:',num2str(iVect(ii)),' gamma:',num2str(gVect(ii))]);
     perTmp = per;
+    if strcmp(geo.RotType,'EESM')
+        fprintf('Evaluation of position   I: %-*g A   gamma: %-*g °   If: %-*g A\n', 5, round(iVect(ii),1), 4, round(gVect(ii),1), 4, round(fVect(ii),1));
+        % disp(['Evaluation of position   I:',num2str(round(iVect(ii),1)),'A  gamma:',num2str(round(gVect(ii),1)),'°  If:',num2str(round(fVect(ii),1)),'A']);
+        perTmp.if = fVect(ii);
+    else
+        disp(['Evaluation of position I:',num2str(iVect(ii)),' gamma:',num2str(gVect(ii))]);
+    end
     perTmp.gamma    = gVect(ii);
     perTmp.overload = iVect(ii)/per.i0;
     [~,~,~,OUT{ii},~] = FEMMfitness([],geo,perTmp,mat,eval_type,[pathname filemot]);
@@ -161,6 +182,10 @@ end
 
 Id = Id(:);
 Iq = Iq(:);
+if strcmp(geo.RotType,'EESM')
+    If   = If(:);
+    Fr  = zeros(size(Id)); % Fdr / Fqr - Vr?    
+end
 Fd   = zeros(size(Id));
 Fq   = zeros(size(Id));
 T    = zeros(size(Id));
@@ -218,34 +243,57 @@ for ii=1:length(Id)
     end
 end
 
-Id   = reshape(Id,[nR,nC]);
-Iq   = reshape(Iq,[nR,nC]);
-Fd   = reshape(Fd,[nR,nC]);
-Fq   = reshape(Fq,[nR,nC]);
-T    = reshape(T,[nR,nC]);
-dT   = reshape(dT,[nR,nC]);
-dTpp = reshape(dTpp,[nR,nC]);
-We   = reshape(We,[nR,nC]);
-Wc   = reshape(Wc,[nR,nC]);
-SOL  = reshape(SOL,[nR,nC]);
+if strcmp(geo.RotType,'EESM')
+    Id   = reshape(Id,[nR,nC,nF]);
+    Iq   = reshape(Iq,[nR,nC,nF]);
+    If   = reshape(If,[nR,nC,nF]);
+    Fd   = reshape(Fd,[nR,nC,nF]);
+    Fq   = reshape(Fq,[nR,nC,nF]);
+    T    = reshape(T,[nR,nC,nF]);
+    dT   = reshape(dT,[nR,nC,nF]);
+    dTpp = reshape(dTpp,[nR,nC,nF]);
+    We   = reshape(We,[nR,nC,nF]);
+    Wc   = reshape(Wc,[nR,nC,nF]);
+    SOL  = reshape(SOL,[nR,nC,nF]);
 
-if isfield(OUT{1},'Pfes_h')
-    Pfes_h = reshape(Pfes_h,[nR,nC]);
-    Pfes_c = reshape(Pfes_c,[nR,nC]);
-    Pfer_h = reshape(Pfer_h,[nR,nC]);
-    Pfer_c = reshape(Pfer_c,[nR,nC]);
-    Ppm    = reshape(Ppm,[nR,nC]);
-end
+    if isfield(OUT{1},'Pfes_h')
+        Pfes_h = reshape(Pfes_h,[nR,nC,nF]);
+        Pfes_c = reshape(Pfes_c,[nR,nC,nF]);
+        Pfer_h = reshape(Pfer_h,[nR,nC,nF]);
+        Pfer_c = reshape(Pfer_c,[nR,nC,nF]);
+        Ppm    = reshape(Ppm,[nR,nC,nF]);
+    end
 
-if isfield(OUT{1},'IM')
-    Ir      = reshape(Ir,[nR,nC]);
-    Fdr     = reshape(Fdr,[nR,nC]);
-    Fqr     = reshape(Fqr,[nR,nC]);
-    kr      = reshape(kr,[nR,nC]);
-    Ibar    = reshape(Ibar,[nR,nC]);
-    Vbar    = reshape(Vbar,[nR,nC]);
-    Fbar    = reshape(Fbar,[nR,nC]);
-    FbarTot = reshape(FbarTot,[nR,nC]);
+else
+    Id   = reshape(Id,[nR,nC]);
+    Iq   = reshape(Iq,[nR,nC]);
+    Fd   = reshape(Fd,[nR,nC]);
+    Fq   = reshape(Fq,[nR,nC]);
+    T    = reshape(T,[nR,nC]);
+    dT   = reshape(dT,[nR,nC]);
+    dTpp = reshape(dTpp,[nR,nC]);
+    We   = reshape(We,[nR,nC]);
+    Wc   = reshape(Wc,[nR,nC]);
+    SOL  = reshape(SOL,[nR,nC]);
+
+    if isfield(OUT{1},'Pfes_h')
+        Pfes_h = reshape(Pfes_h,[nR,nC]);
+        Pfes_c = reshape(Pfes_c,[nR,nC]);
+        Pfer_h = reshape(Pfer_h,[nR,nC]);
+        Pfer_c = reshape(Pfer_c,[nR,nC]);
+        Ppm    = reshape(Ppm,[nR,nC]);
+    end
+    
+    if isfield(OUT{1},'IM')
+        Ir      = reshape(Ir,[nR,nC]);
+        Fdr     = reshape(Fdr,[nR,nC]);
+        Fqr     = reshape(Fqr,[nR,nC]);
+        kr      = reshape(kr,[nR,nC]);
+        Ibar    = reshape(Ibar,[nR,nC]);
+        Vbar    = reshape(Vbar,[nR,nC]);
+        Fbar    = reshape(Fbar,[nR,nC]);
+        FbarTot = reshape(FbarTot,[nR,nC]);
+    end
 end
 
 
@@ -258,6 +306,9 @@ F_map.dT   = dT;
 F_map.dTpp = dTpp;
 F_map.We   = We;
 F_map.Wc   = Wc;
+if strcmp(geo.RotType,'EESM')
+    F_map.If   = If;
+end
 
 if exist('Pfes_h','var')
     F_map.Pfes_h = Pfes_h;
@@ -303,7 +354,12 @@ if ~exist([pathname resFolder],'dir')
 end
 
 % NewDir = [pathname resFolder filemot(1:end-4) '_F_map_' Idstr 'x' Iqstr '_' int2str(per.tempPP) 'deg'];
-NewDir = [pathname resFolder 'F_map_' Idstr 'x' Iqstr '_' int2str(per.tempPP) 'deg_' int2str(MapQuadrants) 'Q'];
+if strcmp(geo.RotType,'EESM')
+    NewDir = [pathname resFolder 'F_map_' Idstr 'x' Iqstr '_' int2str(floor(dataIn.FieldCurrent)) 'f' int2str(10*(dataIn.FieldCurrent-floor(dataIn.FieldCurrent))) '_' int2str(MapQuadrants) 'Q'];
+else
+    NewDir = [pathname resFolder 'F_map_' Idstr 'x' Iqstr '_' int2str(per.tempPP) 'deg_' int2str(MapQuadrants) 'Q'];
+end
+
 if sum(per.flag3phaseSet)~=geo.win.n3phase
     NewDir = [NewDir '_' mat2str(per.flag3phaseSet)];
 end
@@ -327,7 +383,12 @@ else
 end
 
 % interp and then plots the magnetic curves
-plot_singm(F_map,NewDir);
+
+if strcmp(geo.RotType,'EESM')
+    plot_singm3D(F_map,NewDir);
+else
+    plot_singm(F_map,NewDir);
+end
 
 % add motor information to flux map files
 dataSet.RatedCurrent     = RatedCurrent;

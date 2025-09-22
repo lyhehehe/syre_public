@@ -28,7 +28,7 @@ numberOfIndividuals = size(X,1);
 J=zeros(numberOfIndividuals,Dat.NOBJ);
 f=Dat.CostProblem;
 
-    parfor i=1:numberOfIndividuals
+    parfor i=1:numberOfIndividuals %for debug mode remove "par"
         disp(['Evaluating ' num2str(i) '/' num2str(numberOfIndividuals) ' solution.'])
         [J(i,:),G{i}]=f(X(i,:)');
     end

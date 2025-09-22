@@ -43,6 +43,9 @@ deadtime = motorModel.SyreDrive.Converter.dT;
 
 id_MTPA  = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.id,i0);
 iq_MTPA  = interp1(abs(MTPA.id+1i*MTPA.iq),MTPA.iq,i0);
+if isempty(motorModel.IncInductanceMap_dq)
+    motorModel.IncInductanceMap_dq = MMM_eval_inductanceMap(motorModel);
+end
 Ld_inic  = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Ldd,id_MTPA,iq_MTPA);
 Lq_inic  = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Lqq,id_MTPA,iq_MTPA);
 ld_inic  = interp2(motorModel.IncInductanceMap_dq.Id,motorModel.IncInductanceMap_dq.Iq,motorModel.IncInductanceMap_dq.Ldd,id_MTPA,iq_MTPA);

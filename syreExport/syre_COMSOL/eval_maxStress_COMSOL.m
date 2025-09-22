@@ -15,27 +15,26 @@
 function [out]=eval_maxStress_COMSOL(Stress,mat)
 
 stress_rot =[];
-x_stress = [];
-y_stress = [];
 
 for kk = 1:size(Stress, 1)
     if Stress(kk, 3) > mat.Rotor.sigma_max
-       x_stress = Stress(kk, 1); 
-       y_stress = Stress(kk, 2);    
+        stress_rot = [stress_rot; Stress(kk,1), Stress(kk,2)];
     end
-    stress_rot = [stress_rot; x_stress, y_stress];
 end
-
-x_max_stress = [];
-y_max_stress = [];
 
 [~, idx] = max(Stress(:, 3));
 
-x_max_stress = Stress(idx, 1);
-y_max_stress = Stress(idx, 2);
+out.stressrot = stress_rot;
 
-out.stressrot   = stress_rot;
-out.x_over      = x_stress;
-out.y_over      = y_stress;
-out.x_max       = x_max_stress;
-out.y_max       = y_max_stress;
+%out.x_over    = stress_rot(:,1);
+%out.y_over    = stress_rot(:,2);
+if ~isempty(stress_rot)
+    out.x_over = stress_rot(:, 1);
+    out.y_over = stress_rot(:, 2);
+else
+    out.x_over = [];
+    out.y_over = [];
+end
+
+out.x_max     = Stress(idx, 1);
+out.y_max     = Stress(idx, 2);
